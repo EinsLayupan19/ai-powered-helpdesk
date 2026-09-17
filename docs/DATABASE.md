@@ -35,13 +35,11 @@ categories
 documents
 document_chunks
 faqs
+support_contacts
 
 conversations
 messages
 message_sources
-
-tickets
-ticket_comments
 
 feedback
 notifications
@@ -50,6 +48,12 @@ retrieval_logs
 ai_usage_logs
 system_settings
 ```
+
+The previous ticketing tables are intentionally removed from the current scope:
+- `tickets`
+- `ticket_comments`
+
+Do not recreate them unless the project scope is explicitly changed.
 
 ## Important Relationships
 
@@ -63,8 +67,10 @@ documents → document_chunks
 conversations → messages
 messages → message_sources
 
-tickets → ticket_comments
+categories → support_contacts
 ```
+
+Exact foreign-key relationships should be finalized by backend migrations.
 
 ## Profiles
 
@@ -81,7 +87,7 @@ Role changes belong to authorized administrators.
 
 ## Categories
 
-Categories must be database-driven/configurable.
+Categories must be database-driven and configurable.
 
 Do not hardcode the initial category list throughout frontend/backend code.
 
@@ -104,6 +110,32 @@ Chunks should retain enough metadata to trace an answer back to its source docum
 
 The exact schema should be finalized by the backend implementation before frontend integration.
 
+## FAQs
+
+FAQs are curated school knowledge that can be retrieved as verified information.
+
+They should support appropriate publication/activation controls so only approved content is used in normal answering.
+
+## Support Contacts
+
+The support directory stores verified school office/support information that students can use when the AI cannot safely answer.
+
+Possible fields:
+- id
+- name
+- category_id or department_id
+- description
+- location
+- contact information
+- office hours when verified
+- active/published status
+- created_at
+- updated_at
+
+Do not expose unverified or unpublished contacts as authoritative information.
+
+Do not allow the AI to invent support contacts.
+
 ## Conversations
 
 A conversation contains messages.
@@ -111,28 +143,6 @@ A conversation contains messages.
 Messages may have source references.
 
 Use a controlled recent-message window for AI context. Never send unlimited history.
-
-## Tickets
-
-Core ticket fields:
-- id
-- ticket_number
-- student_id
-- subject
-- description
-- category_id
-- department_id
-- priority
-- status
-- assigned_to
-- created_at
-- updated_at
-- resolved_at
-- ai_summary
-
-## Ticket Comments
-
-Support student/staff communication without exposing internal notes to unauthorized users.
 
 ## Feedback
 
@@ -156,11 +166,12 @@ Track important administrative/security actions.
 Students should only access their own:
 - Conversations
 - Messages
-- Tickets
 - Feedback
 - Profile
 
-Staff should access permitted department/assigned tickets.
+Students may read publicly available verified knowledge/support information according to application rules.
+
+Staff/admin access to knowledge-management resources should follow role and department permissions.
 
 Admins should access administrative resources according to role.
 
@@ -174,3 +185,5 @@ RLS policies must be tested.
 - Keep foreign-key relationships explicit.
 - Validate sensitive operations on the backend.
 - Do not trust client-provided role/ownership fields.
+- Do not store unnecessary sensitive student information.
+- Do not recreate ticket tables for the current MVP.
