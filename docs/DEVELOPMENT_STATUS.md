@@ -1,14 +1,27 @@
 # Development Status
 
-> This file is the shared progress board for Backend Claude and Frontend Claude.
+> Shared progress board for Backend Claude and Frontend Claude.
 
 ## Current Phase
 
-**Phase: 0 — Repository / Architecture Setup**
+**Phase: 0 — Repository / Architecture Setup + UI Design**
 
-Status: TODO / IN PROGRESS
+Status: IN PROGRESS
 
-Do not begin later phases until the current phase is stable.
+The architecture has been revised to remove the ticketing workflow. UI design/prototyping may proceed before production frontend implementation.
+
+## Scope Decision
+
+**Ticketing system: REMOVED from current scope.**
+
+Do not implement:
+- Ticket creation
+- Ticket queues
+- Ticket comments
+- Ticket assignment
+- Ticket statuses/priorities
+
+Human assistance is handled through verified school office/support contacts.
 
 ## Backend
 
@@ -24,7 +37,7 @@ Do not begin later phases until the current phase is stable.
 - [ ] GeminiProvider
 - [ ] RAG pipeline
 - [ ] Chat endpoint
-- [ ] Ticket endpoint
+- [ ] Support-directory endpoints
 - [ ] Validation
 - [ ] Rate limiting
 - [ ] Backend tests
@@ -36,12 +49,12 @@ Do not begin later phases until the current phase is stable.
 - [ ] Design system
 - [ ] Routing
 - [ ] Authentication UI
-- [ ] Student dashboard
-- [ ] Chat interface
+- [ ] Minimal student dashboard
+- [ ] AI Helpdesk chat interface
 - [ ] Source references
 - [ ] Feedback UI
-- [ ] Ticket creation
-- [ ] Ticket list/detail
+- [ ] Conversation history
+- [ ] Support directory
 - [ ] Staff interface
 - [ ] Admin interface
 - [ ] Loading/error/empty states
@@ -49,15 +62,27 @@ Do not begin later phases until the current phase is stable.
 - [ ] Accessibility
 - [ ] Frontend tests
 
+## UI/UX Prototype
+
+- [ ] Figma design system
+- [ ] Student login design
+- [ ] Minimal student dashboard design
+- [ ] AI Helpdesk chat design
+- [ ] Conversation history design
+- [ ] Support directory design
+- [ ] Admin knowledge-base screens
+- [ ] Staff/admin screens
+- [ ] Responsive/mobile designs
+
 ## Shared
 
 - [ ] README
-- [ ] CLAUDE.md
-- [ ] Architecture documentation
-- [ ] API contract
-- [ ] Database documentation
-- [ ] Security documentation
-- [ ] AI/RAG documentation
+- [x] CLAUDE.md scope updated
+- [x] Architecture documentation updated
+- [x] API contract updated
+- [x] Database documentation updated
+- [x] Security documentation updated
+- [x] AI/RAG documentation updated
 - [ ] Evaluation dataset
 - [ ] Deployment documentation
 
@@ -73,6 +98,7 @@ Do not begin later phases until the current phase is stable.
 - Migrations: TODO
 - RLS: TODO
 - Seed/config data: TODO
+- Support directory design: TODO
 
 ## Current AI/RAG Status
 
@@ -87,11 +113,14 @@ Do not begin later phases until the current phase is stable.
 
 ## Known Issues
 
-None recorded yet.
+- Final database schema is not implemented.
+- Exact API request/response types are not finalized.
+- Embedding model and vector dimension are not finalized.
+- Verified school knowledge/contact data is not yet loaded.
 
 ## Blockers
 
-None recorded yet.
+None.
 
 ## Latest Backend Handoff
 
@@ -113,6 +142,10 @@ None recorded yet.
 - Tests:
 - Known issues:
 - Next step:
+
+## Next Recommended Step
+
+Finish the minimalist student UI prototype in Figma, then build a small HTML/CSS/JS visual prototype if desired. After the visual design is approved, Frontend Claude can refactor/convert the prototype into the repository's React + TypeScript structure.
 
 ## Rules for Updating This File
 
