@@ -2,17 +2,14 @@
 
 ## Purpose
 
-This document is the contract between the Backend Claude and Frontend Claude.
+Contract between Backend Claude and Frontend Claude.
 
 **Backend implements. Frontend consumes.**
 
-Do not invent endpoints or fields outside this document.
+The current scope does **not** include ticket creation, ticket queues, ticket comments, or ticket assignment.
 
-## Current Status
+## Status Labels
 
-This contract starts as a design contract. Exact request/response schemas should be finalized by the backend before frontend integration.
-
-Use these labels:
 - IMPLEMENTED
 - AGREED
 - MOCKED
@@ -22,14 +19,12 @@ Use these labels:
 
 - REST API
 - JSON request/response bodies unless file upload requires multipart
-- Authentication via Supabase Auth session/token
+- Supabase Auth session/token authentication
 - Backend validates all incoming data
-- Errors use a consistent structure
+- Consistent error structure
 - Sensitive authorization decisions happen on the backend
 
-## Planned Endpoint Groups
-
-### Authentication
+## Authentication
 
 Supabase Auth handles:
 - Sign up
@@ -39,9 +34,7 @@ Supabase Auth handles:
 - Session management
 - Logout
 
-The frontend should use the agreed Supabase Auth integration rather than implementing its own password system.
-
-### Chat
+## Chat
 
 Planned:
 ```text
@@ -53,25 +46,38 @@ DELETE /api/conversations/:id
 POST /api/messages/:id/feedback
 ```
 
-### Tickets
+A successful chat response conceptually contains:
+- assistant answer
+- source references when retrieval was used
+- classification metadata only when safe/needed
+- conversation/message identifiers
+- feedback capability
+- verified support-directory references when human assistance is appropriate
 
-Planned:
-```text
-POST /api/tickets
-GET  /api/tickets
-GET  /api/tickets/:id
-POST /api/tickets/:id/comments
-PATCH /api/tickets/:id
-```
+If verified information is insufficient, use:
 
-### Categories
+> I don't have enough verified information to answer that accurately.
+
+The frontend may then display appropriate verified support contacts.
+
+## Categories
 
 Planned:
 ```text
 GET /api/categories
 ```
 
-### Knowledge Base — Admin
+## Support Directory
+
+Planned:
+```text
+GET /api/support-contacts
+GET /api/support-contacts/:id
+```
+
+Only verified/published support information may be returned to students. The system must never manufacture contact information from AI output.
+
+## Knowledge Base — Admin
 
 Planned:
 ```text
@@ -85,12 +91,16 @@ GET  /api/admin/faqs
 POST /api/admin/faqs
 PATCH /api/admin/faqs/:id
 DELETE /api/admin/faqs/:id
+
+GET  /api/admin/support-contacts
+POST /api/admin/support-contacts
+PATCH /api/admin/support-contacts/:id
+DELETE /api/admin/support-contacts/:id
 ```
 
-### Admin/Staff
+## Admin/Staff
 
 Planned endpoint groups may include:
-- ticket assignment
 - staff management
 - analytics
 - notifications
@@ -98,25 +108,7 @@ Planned endpoint groups may include:
 
 Exact endpoints must be documented before frontend implementation.
 
-## Chat Response Expectations
-
-A successful chat response should conceptually contain:
-- assistant answer
-- source references when retrieval was used
-- classification metadata only when safe/needed
-- conversation/message identifiers
-- feedback capability
-- escalation/ticket capability when applicable
-
-Exact TypeScript types are owned by the backend contract.
-
-## Ticket Response Expectations
-
-Tickets should expose only fields the requesting role is authorized to see.
-
-AI-generated summaries must be clearly labeled as AI-generated.
-
-## Error Contract
+## Errors
 
 Use a consistent shape such as:
 
@@ -129,14 +121,12 @@ Use a consistent shape such as:
 }
 ```
 
-The final implementation may extend this structure, but frontend and backend must agree before integration.
-
 ## Contract Change Rule
 
 If backend behavior changes:
 1. Update this document.
 2. Update backend implementation.
-3. Notify/update frontend types and integration.
+3. Update frontend types/integration.
 4. Test the affected flow.
 
 Never silently change an API consumed by the frontend.
