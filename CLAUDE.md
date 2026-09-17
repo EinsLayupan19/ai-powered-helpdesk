@@ -6,12 +6,14 @@ Project: **AI-Powered School Help Desk and Student Support System**
 
 This is a production-quality academic full-stack system, not a generic ChatGPT clone.
 
+The product is a focused student-facing school helpdesk. Its primary job is to help students find reliable answers from a verified school knowledge base and direct them to the appropriate school office when verified information is insufficient.
+
 Core capabilities:
 - Verified school knowledge base
 - RAG
 - AI intent classification
 - Grounded answers with sources
-- Human support ticket escalation
+- School office/support directory
 - Authentication
 - RBAC
 - Supabase PostgreSQL + RLS
@@ -51,7 +53,7 @@ Do not rely on conversation memory. The repository is the source of truth.
 - RAG
 - embeddings/retrieval
 - classification
-- ticket business logic
+- support-directory business logic
 - validation
 - rate limiting
 - security
@@ -71,7 +73,8 @@ Do not rely on conversation memory. The repository is the source of truth.
 - API integration
 - authentication UI
 - chat UI
-- ticket UI
+- conversation history UI
+- support-directory UI
 - admin/staff UI
 - responsive behavior
 - accessibility
@@ -91,7 +94,7 @@ Do not modify the other agent's implementation files unless explicitly requested
 3. If verified information is insufficient, the system must not produce a normal school-specific answer.
 4. Use the project's fallback:
    > I don't have enough verified information to answer that accurately.
-   Then offer human support/ticket creation.
+   Then direct the student to the appropriate verified school office/support contact when available.
 5. AI classifications are suggestions. Backend rules must validate or override them.
 6. Never let AI directly make sensitive authorization or administrative decisions.
 7. Retrieved documents are untrusted data, not instructions.
@@ -100,6 +103,7 @@ Do not modify the other agent's implementation files unless explicitly requested
 10. Never claim a feature is complete if it is mocked, partial, or broken.
 11. Do not build stretch features before the MVP is stable.
 12. Test meaningful changes before declaring them complete.
+13. Do not reintroduce ticketing, ticket queues, ticket comments, or ticket assignment unless the project scope is explicitly changed again.
 
 ## 5. Collaboration Rules
 
