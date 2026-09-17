@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EagleDesk — University Helpdesk</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="brand">
+      <img src="assets/eagle.png" alt="EagleDesk" class="brand-eagle">
+
+      <div class="brand-text">
+        <strong>EagleDesk</strong>
+        <span>University Helpdesk</span>
+      </div>
+    </div>
+
+    <button class="collapse-btn" id="collapseBtn">
+      <span>‹</span>
+    </button>
+
+    <nav class="nav">
+
+      <a href="#" class="nav-item active" data-page="dashboard">
+        <span class="icon">⌂</span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+
+      <a href="#" class="nav-item" data-page="helpdesk">
+        <span class="icon">✦</span>
+        <span class="nav-label">AI Helpdesk</span>
+      </a>
+
+      <a href="#" class="nav-item" data-page="conversations">
+        <span class="icon">◻</span>
+        <span class="nav-label">Conversations</span>
+      </a>
+
+      <a href="#" class="nav-item" data-page="profile">
+        <span class="icon">♙</span>
+        <span class="nav-label">My Profile</span>
+      </a>
+
+      <a href="#" class="nav-item" data-page="notifications">
+        <span class="icon">♧</span>
+        <span class="nav-label">Notifications</span>
+      </a>
+
+      <a href="#" class="nav-item" data-page="settings">
+        <span class="icon">⚙</span>
+        <span class="nav-label">Settings</span>
+      </a>
+
+    </nav>
+
+    <div class="sidebar-bottom">
+
+      <!-- THEME BUTTON -->
+      <button class="theme-toggle" id="themeToggle">
+        <span id="themeIcon">☾</span>
+        <span class="nav-label" id="themeText">Dark mode</span>
+      </button>
+
+      <div class="profile">
+
+        <div class="avatar">E</div>
+
+        <div class="profile-text">
+          <strong>Eins Layupan</strong>
+          <span>BSIT · 3rd Year</span>
+        </div>
+
+      </div>
+
+    </div>
+
+  </aside>
+
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <header class="topbar">
+
+      <div class="mobile-brand">
+        <img src="assets/eagle.png" alt="">
+        <strong>EagleDesk</strong>
+      </div>
+
+      <div class="top-actions">
+
+        <button class="icon-btn" id="topThemeToggle">
+          ☾
+        </button>
+
+        <button class="top-avatar">
+          E
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <!-- DASHBOARD PAGE -->
+    <section class="page active-page" id="dashboardPage">
+
+      <div class="content">
+
+        <div class="intro">
+
+          <h1>Good afternoon, Eins.</h1>
+
+          <p>
+            What can we help you with today?
+          </p>
+
+        </div>
+
+
+        <section class="helpdesk-card">
+
+          <div class="mascot-wrap">
+
+            <img
+              src="assets/eagle.png"
+              alt="EagleDesk eagle mascot"
+              class="mascot"
+            />
+
+          </div>
+
+
+          <div class="helpdesk-content">
+
+            <span class="eyebrow">
+              UNIVERSITY SUPPORT
+            </span>
+
+            <h2>
+              Ask the Helpdesk
+            </h2>
+
+            <p>
+              Ask about university services, policies,
+              procedures, or student concerns.
+            </p>
+
+
+            <form class="ask-form" id="dashboardForm">
+
+              <div class="search-box">
+
+                <span class="search-icon">
+                  ⌕
+                </span>
+
+                <input
+                  id="dashboardInput"
+                  type="text"
+                  placeholder="What do you need help with?"
+                >
+
+              </div>
+
+              <button class="ask-btn">
+                Ask AI
+                <span>→</span>
+              </button>
+
+            </form>
+
+          </div>
+
+        </section>
+
+
+        <section class="topics">
+
+          <div class="section-heading">
+
+            <h2>
+              Popular topics
+            </h2>
+
+            <button id="allTopicsBtn">
+              View all topics →
+            </button>
+
+          </div>
+
+
+          <div class="topic-list" id="topicList">
+
+            <button class="topic">
+              Academic
+            </button>
+
+            <button class="topic">
+              Enrollment
+            </button>
+
+            <button class="topic">
+              Registrar
+            </button>
+
+            <button class="topic">
+              Finance
+            </button>
+
+            <button class="topic">
+              IT Support
+            </button>
+
+            <button class="topic">
+              Library
+            </button>
+
+          </div>
+
+        </section>
+
+      </div>
+
+    </section>
+
+
+    <!-- AI HELPDESK PAGE -->
+    <section class="page" id="helpdeskPage">
+
+      <div class="chat-layout">
+
+        <!-- CONVERSATIONS -->
+        <aside class="conversation-sidebar">
+
+          <div class="conversation-header">
+
+            <strong>
+              Conversations
+            </strong>
+
+            <button id="newChat">
+              +
+            </button>
+
+          </div>
+
+
+          <div class="conversation-search">
+
+            <input
+              type="text"
+              placeholder="Search conversations..."
+            >
+
+          </div>
+
+
+          <div class="conversation-list">
+
+            <button class="conversation active">
+              <strong>Enrollment question</strong>
+              <span>Today</span>
+            </button>
+
+            <button class="conversation">
+              <strong>Library schedule</strong>
+              <span>Yesterday</span>
+            </button>
+
+            <button class="conversation">
+              <strong>Student requirements</strong>
+              <span>Sep 15</span>
+            </button>
+
+          </div>
+
+        </aside>
+
+
+        <!-- CHAT -->
+        <section class="chat">
+
+          <div class="chat-header">
+
+            <div class="ai-title">
+
+              <div class="ai-avatar">
+                <img src="assets/eagle.png" alt="">
+              </div>
+
+              <div>
+                <strong>
+                  EagleDesk AI
+                </strong>
+
+                <span>
+                  Verified school information
+                </span>
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="messages" id="messages">
+
+            <!-- WELCOME -->
+
+            <div class="welcome">
+
+              <img
+                src="assets/eagle.png"
+                alt="EagleDesk"
+              >
+
+              <h2>
+                How can I help?
+              </h2>
+
+              <p>
+                Ask me about university services,
+                procedures, and student concerns.
+              </p>
+
+            </div>
+
+
+            <!-- SUGGESTIONS -->
+
+            <div class="suggestions">
+
+              <button>
+                What are the enrollment requirements?
+              </button>
+
+              <button>
+                Where can I get my student records?
+              </button>
+
+              <button>
+                How can I contact IT support?
+              </button>
+
+              <button>
+                What are the library rules?
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <!-- CHAT INPUT -->
+
+          <form class="chat-input-area" id="chatForm">
+
+            <div class="chat-input">
+
+              <input
+                id="chatInput"
+                type="text"
+                placeholder="Ask a question..."
+                autocomplete="off"
+              >
+
+              <button type="submit">
+                →
+              </button>
+
+            </div>
+
+            <small>
+              EagleDesk uses verified university information.
+            </small>
+
+          </form>
+
+        </section>
+
+      </div>
+
+    </section>
+
+
+    <!-- PLACEHOLDER PAGES -->
+
+    <section class="page placeholder-page" id="conversationsPage">
+
+      <h1>Conversations</h1>
+
+      <p>
+        Your previous AI Helpdesk conversations will appear here.
+      </p>
+
+    </section>
+
+
+    <section class="page placeholder-page" id="profilePage">
+
+      <h1>My Profile</h1>
+
+      <p>
+        Manage your student profile.
+      </p>
+
+    </section>
+
+
+    <section class="page placeholder-page" id="notificationsPage">
+
+      <h1>Notifications</h1>
+
+      <p>
+        You currently have no new notifications.
+      </p>
+
+    </section>
+
+
+    <section class="page placeholder-page" id="settingsPage">
+
+      <h1>Settings</h1>
+
+      <p>
+        Manage your EagleDesk preferences.
+      </p>
+
+    </section>
+
+  </main>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
