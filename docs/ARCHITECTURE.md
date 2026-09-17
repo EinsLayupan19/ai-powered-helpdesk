@@ -2,13 +2,17 @@
 
 ## Architectural Goal
 
-Build a maintainable full-stack school support system with strict separation between:
+Build a maintainable full-stack school helpdesk with strict separation between:
 - Frontend presentation
 - Backend business logic
 - Database
 - AI provider
 - Retrieval system
 - Security/authorization
+
+The system is intentionally focused on answering student school concerns from verified information and guiding students to verified school support contacts when the AI cannot safely answer.
+
+There is **no ticketing workflow in the current architecture**.
 
 ## High-Level Architecture
 
@@ -38,6 +42,7 @@ REST API
 Knowledge Base
 Documents → Chunks
 FAQs
+Support Directory
 ```
 
 ## Backend Layers
@@ -124,18 +129,18 @@ Request
 → Return response
 ```
 
-### Escalation
+### Insufficient Information / Human Support
 
 ```text
 Question
 → Retrieval/classification
 → Cannot safely answer
 → Explain limitation
-→ Student creates ticket
-→ Backend validates ticket
-→ AI may generate structured summary
-→ Staff handles ticket
+→ Identify appropriate verified school office/support contact
+→ Show contact information from trusted system data
 ```
+
+The system must not invent a contact, office, schedule, or procedure. If no verified support information exists, it must say so clearly.
 
 ## Security Gates
 
@@ -161,10 +166,35 @@ RLS is the database-level security source of truth.
 Knowledge Base
 ├── Documents
 │   └── Document Chunks
-└── FAQs
+├── FAQs
+└── Support Directory
 ```
 
 Documents should support lifecycle/versioning and only verified/published knowledge should participate in normal production retrieval.
+
+Support directory entries must also be verified before being shown as authoritative contact information.
+
+## Student Experience Architecture
+
+```text
+Login
+  ↓
+Dashboard
+  ↓
+AI Helpdesk
+  ↓
+Question
+  ↓
+Grounded Answer + Sources
+  │
+  ├── Feedback
+  │
+  └── Insufficient Information
+          ↓
+      Support Directory
+```
+
+Conversation history is available separately and should not overload the dashboard.
 
 ## Design Principles
 
@@ -176,3 +206,5 @@ Documents should support lifecycle/versioning and only verified/published knowle
 - Observable AI behavior
 - No fake production data
 - Incremental development
+- Minimal student-facing UX
+- Reliable information over feature quantity
