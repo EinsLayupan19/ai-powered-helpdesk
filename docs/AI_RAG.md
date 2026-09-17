@@ -6,12 +6,18 @@ The AI exists to help students navigate verified school information.
 
 It is not an unrestricted chatbot.
 
+The AI answers school-specific questions only from verified retrieved knowledge. When verified information is insufficient, it must not guess and should guide the student to verified school support information when available.
+
 ## RAG Flow
 
 ```text
 QUESTION
   ↓
 Normalize
+  ↓
+Classify intent
+  ↓
+Determine whether school knowledge is required
   ↓
 Generate embedding
   ↓
@@ -43,7 +49,12 @@ Start with an initial threshold and tune it using the evaluation dataset.
 If retrieval quality is insufficient:
 - Do not generate a normal school-specific answer.
 - Tell the user verified information is insufficient.
-- Offer human support.
+- Provide verified school support/contact information when available.
+- Never invent contact information.
+
+Fallback text:
+
+> I don't have enough verified information to answer that accurately.
 
 ## Grounding
 
@@ -56,13 +67,16 @@ Track groundedness during evaluation.
 ## AI Safety Layers
 
 ### Layer 1 — Retrieval Gate
-Insufficient retrieval blocks normal answering.
+Insufficient retrieval blocks normal school-specific answering.
 
 ### Layer 2 — System Prompt
 The model must be instructed to answer school-specific questions only from verified retrieved information.
 
 ### Layer 3 — Groundedness Check
 Where practical, check generated claims against retrieved context.
+
+### Layer 4 — Support Directory Gate
+If human assistance is appropriate, only verified support-directory data may be shown.
 
 ## Prompt Injection
 
@@ -94,7 +108,6 @@ Possible outputs:
 - school_specific
 - retrieval_required
 - suggested_department
-- suggested_priority
 - human_support_required
 
 These are suggestions.
