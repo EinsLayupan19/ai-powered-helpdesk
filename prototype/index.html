@@ -392,48 +392,310 @@
     </section>
 
 
-    <!-- PLACEHOLDER PAGES -->
+    <!-- CONVERSATIONS PAGE -->
 
-    <section class="page placeholder-page" id="conversationsPage">
+    <section class="page" id="conversationsPage">
 
-      <h1>Conversations</h1>
+      <div class="inner-page">
 
-      <p>
-        Your previous AI Helpdesk conversations will appear here.
-      </p>
+        <div class="page-heading">
+          <h1>Conversations</h1>
+          <p>Every question you've asked the helpdesk, in one place.</p>
+        </div>
+
+        <div class="conv-search">
+          <input type="text" id="convSearchInput" placeholder="Search your conversations...">
+        </div>
+
+        <div class="conv-full-list" id="convFullList">
+
+          <button class="conv-full-item" data-open-chat>
+            <span class="conv-icon">◻</span>
+            <span class="conv-full-text">
+              <strong>Enrollment question</strong>
+              <span>I found verified information related to enrollment...</span>
+            </span>
+            <span class="conv-full-date">Today</span>
+          </button>
+
+          <button class="conv-full-item" data-open-chat>
+            <span class="conv-icon">◻</span>
+            <span class="conv-full-text">
+              <strong>Library schedule</strong>
+              <span>I found information related to library services...</span>
+            </span>
+            <span class="conv-full-date">Yesterday</span>
+          </button>
+
+          <button class="conv-full-item" data-open-chat>
+            <span class="conv-icon">◻</span>
+            <span class="conv-full-text">
+              <strong>Student requirements</strong>
+              <span>You can check the appropriate university office...</span>
+            </span>
+            <span class="conv-full-date">Sep 15</span>
+          </button>
+
+          <button class="conv-full-item" data-open-chat>
+            <span class="conv-icon">◻</span>
+            <span class="conv-full-text">
+              <strong>IT support: campus wifi</strong>
+              <span>I found verified information related to IT support...</span>
+            </span>
+            <span class="conv-full-date">Sep 12</span>
+          </button>
+
+        </div>
+
+      </div>
 
     </section>
 
 
-    <section class="page placeholder-page" id="profilePage">
+    <!-- PROFILE PAGE -->
 
-      <h1>My Profile</h1>
+    <section class="page" id="profilePage">
 
-      <p>
-        Manage your student profile.
-      </p>
+      <div class="inner-page">
+
+        <div class="page-heading">
+          <h1>My Profile</h1>
+          <p>Manage the information the helpdesk uses to assist you.</p>
+        </div>
+
+        <div class="panel">
+
+          <div class="profile-header">
+
+            <div class="profile-avatar-lg">E</div>
+
+            <div>
+              <h2>Eins Layupan</h2>
+              <p>BSIT · 3rd Year · Section 3BSIT-1</p>
+            </div>
+
+            <button class="profile-edit-btn" id="editProfileBtn">Edit profile</button>
+
+          </div>
+
+          <div class="profile-fields">
+
+            <div class="profile-field">
+              <label>Full name</label>
+              <div>Zirk Eins B. Layupan</div>
+            </div>
+
+            <div class="profile-field">
+              <label>Student number</label>
+              <div>21-0000-000</div>
+            </div>
+
+            <div class="profile-field">
+              <label>Program</label>
+              <div>BS Information Technology</div>
+            </div>
+
+            <div class="profile-field">
+              <label>Section</label>
+              <div>3BSIT-1</div>
+            </div>
+
+            <div class="profile-field">
+              <label>Email</label>
+              <div>eins.layupan@neu.edu.ph</div>
+            </div>
+
+            <div class="profile-field">
+              <label>Status</label>
+              <div>Active</div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="panel">
+          <h3>Activity</h3>
+          <p class="panel-sub">A quick summary of your helpdesk usage.</p>
+
+          <div class="profile-fields">
+
+            <div class="profile-field">
+              <label>Conversations started</label>
+              <div>4</div>
+            </div>
+
+            <div class="profile-field">
+              <label>Topics asked about</label>
+              <div>Enrollment, Library, IT Support</div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
 
     </section>
 
 
-    <section class="page placeholder-page" id="notificationsPage">
+    <!-- NOTIFICATIONS PAGE -->
 
-      <h1>Notifications</h1>
+    <section class="page" id="notificationsPage">
 
-      <p>
-        You currently have no new notifications.
-      </p>
+      <div class="inner-page">
+
+        <div class="page-heading">
+          <h1>Notifications</h1>
+          <p>Updates about your questions and helpdesk announcements.</p>
+        </div>
+
+        <div class="notif-toolbar">
+          <span class="panel-sub" style="margin:0;">3 unread</span>
+          <button id="markAllReadBtn">Mark all as read</button>
+        </div>
+
+        <div class="notif-list" id="notifList">
+
+          <div class="notif-item unread">
+            <span class="notif-dot"></span>
+            <span class="notif-icon">✦</span>
+            <span class="notif-text">
+              <strong>Your question was answered</strong>
+              <p>EagleDesk AI replied to "Enrollment question" with verified information.</p>
+            </span>
+            <span class="notif-time">2h ago</span>
+          </div>
+
+          <div class="notif-item unread">
+            <span class="notif-dot"></span>
+            <span class="notif-icon">◻</span>
+            <span class="notif-text">
+              <strong>New conversation saved</strong>
+              <p>"Library schedule" was added to your conversation history.</p>
+            </span>
+            <span class="notif-time">1d ago</span>
+          </div>
+
+          <div class="notif-item unread">
+            <span class="notif-dot"></span>
+            <span class="notif-icon">♧</span>
+            <span class="notif-text">
+              <strong>Registrar office update</strong>
+              <p>New verified information about registrar procedures has been added to the helpdesk.</p>
+            </span>
+            <span class="notif-time">2d ago</span>
+          </div>
+
+          <div class="notif-item">
+            <span class="notif-dot"></span>
+            <span class="notif-icon">⚙</span>
+            <span class="notif-text">
+              <strong>Welcome to EagleDesk</strong>
+              <p>Your account is set up. Ask your first question from the dashboard.</p>
+            </span>
+            <span class="notif-time">Sep 10</span>
+          </div>
+
+        </div>
+
+      </div>
 
     </section>
 
 
-    <section class="page placeholder-page" id="settingsPage">
+    <!-- SETTINGS PAGE -->
 
-      <h1>Settings</h1>
+    <section class="page" id="settingsPage">
 
-      <p>
-        Manage your EagleDesk preferences.
-      </p>
+      <div class="inner-page">
+
+        <div class="page-heading">
+          <h1>Settings</h1>
+          <p>Manage how EagleDesk looks and notifies you.</p>
+        </div>
+
+        <div class="panel">
+
+          <h3>Appearance</h3>
+          <p class="panel-sub">Choose how EagleDesk looks on this device.</p>
+
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <strong>Dark mode</strong>
+              <span>Switch between light and dark theme.</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="settingsThemeToggle">
+              <span class="switch-track"></span>
+            </label>
+          </div>
+
+        </div>
+
+        <div class="panel">
+
+          <h3>Notifications</h3>
+          <p class="panel-sub">Choose what EagleDesk notifies you about.</p>
+
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <strong>Answer notifications</strong>
+              <span>Get notified when the AI responds to your question.</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" checked>
+              <span class="switch-track"></span>
+            </label>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <strong>Helpdesk announcements</strong>
+              <span>Updates when new verified information is added.</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" checked>
+              <span class="switch-track"></span>
+            </label>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <strong>Email summaries</strong>
+              <span>Weekly recap of your helpdesk activity by email.</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox">
+              <span class="switch-track"></span>
+            </label>
+          </div>
+
+        </div>
+
+        <div class="panel">
+
+          <h3>Account</h3>
+          <p class="panel-sub">Manage your EagleDesk account.</p>
+
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <strong>Language</strong>
+              <span>Language used for the helpdesk interface.</span>
+            </div>
+            <select class="settings-select">
+              <option>English</option>
+              <option>Filipino</option>
+            </select>
+          </div>
+
+          <div class="settings-danger">
+            <button id="clearHistoryBtn">Clear conversation history</button>
+          </div>
+
+        </div>
+
+      </div>
 
     </section>
 

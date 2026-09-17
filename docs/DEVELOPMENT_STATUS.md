@@ -1,159 +1,31 @@
 # Development Status
 
-> Shared progress board for Backend Claude and Frontend Claude.
+Read top-to-bottom before starting a session. Add a new entry at the
+top after every session — don't edit past entries.
 
-## Current Phase
+---
 
-**Phase: 0 — Repository / Architecture Setup + UI Design**
+## [DATE] — Frontend — prototype complete
 
-Status: IN PROGRESS
+- Static HTML/CSS/JS prototype built for all core screens: dashboard
+  (ask bar + popular topics), AI Helpdesk chat, Conversations,
+  Profile, Notifications, Settings. Files: `index.html`, `style.css`,
+  `script.js` (not yet the real React app).
+- Visual direction locked in: navy anchor color, blue→violet gradient
+  used on page background / sidebar / active nav / hero card. Dark
+  mode toggle implemented and working.
+- Chat responses in the prototype are hardcoded keyword-matching, not
+  real — see `generateDemoResponse()` in script.js for what needs to
+  be replaced by a real `POST /api/ask` call.
+- **Not started**: porting prototype to React/TS/Tailwind, wiring to
+  any real API.
 
-The architecture has been revised to remove the ticketing workflow. UI design/prototyping may proceed before production frontend implementation.
+## Next up
 
-## Scope Decision
-
-**Ticketing system: REMOVED from current scope.**
-
-Do not implement:
-- Ticket creation
-- Ticket queues
-- Ticket comments
-- Ticket assignment
-- Ticket statuses/priorities
-
-Human assistance is handled through verified school office/support contacts.
-
-## Backend
-
-- [ ] Backend project structure
-- [ ] Environment configuration
-- [ ] Supabase connection
-- [ ] Database schema/migrations
-- [ ] Supabase Auth integration
-- [ ] RBAC middleware
-- [ ] RLS policies
-- [ ] API foundation
-- [ ] AIService abstraction
-- [ ] GeminiProvider
-- [ ] RAG pipeline
-- [ ] Chat endpoint
-- [ ] Support-directory endpoints
-- [ ] Validation
-- [ ] Rate limiting
-- [ ] Backend tests
-
-## Frontend
-
-- [ ] React/TypeScript setup
-- [ ] Tailwind setup
-- [ ] Design system
-- [ ] Routing
-- [ ] Authentication UI
-- [ ] Minimal student dashboard
-- [ ] AI Helpdesk chat interface
-- [ ] Source references
-- [ ] Feedback UI
-- [ ] Conversation history
-- [ ] Support directory
-- [ ] Staff interface
-- [ ] Admin interface
-- [ ] Loading/error/empty states
-- [ ] Responsive behavior
-- [ ] Accessibility
-- [ ] Frontend tests
-
-## UI/UX Prototype
-
-- [ ] Figma design system
-- [ ] Student login design
-- [ ] Minimal student dashboard design
-- [ ] AI Helpdesk chat design
-- [ ] Conversation history design
-- [ ] Support directory design
-- [ ] Admin knowledge-base screens
-- [ ] Staff/admin screens
-- [ ] Responsive/mobile designs
-
-## Shared
-
-- [ ] README
-- [x] CLAUDE.md scope updated
-- [x] Architecture documentation updated
-- [x] API contract updated
-- [x] Database documentation updated
-- [x] Security documentation updated
-- [x] AI/RAG documentation updated
-- [ ] Evaluation dataset
-- [ ] Deployment documentation
-
-## Current API Contract Status
-
-- Status: AGREED / TODO
-- Backend implementation: TODO
-- Frontend integration: TODO
-
-## Current Database Status
-
-- Schema design: TODO
-- Migrations: TODO
-- RLS: TODO
-- Seed/config data: TODO
-- Support directory design: TODO
-
-## Current AI/RAG Status
-
-- AIService: TODO
-- GeminiProvider: TODO
-- Embedding model: TODO
-- Vector dimension: TODO
-- Retrieval: TODO
-- Threshold evaluation: TODO
-- Groundedness evaluation: TODO
-- Evaluation dataset: TODO
-
-## Known Issues
-
-- Final database schema is not implemented.
-- Exact API request/response types are not finalized.
-- Embedding model and vector dimension are not finalized.
-- Verified school knowledge/contact data is not yet loaded.
-
-## Blockers
-
-None.
-
-## Latest Backend Handoff
-
-- Date:
-- Completed:
-- Files changed:
-- DB changes:
-- API changes:
-- Tests:
-- Known issues:
-- Next step:
-
-## Latest Frontend Handoff
-
-- Date:
-- Completed:
-- Files changed:
-- API changes consumed:
-- Tests:
-- Known issues:
-- Next step:
-
-## Next Recommended Step
-
-Finish the minimalist student UI prototype in Figma, then build a small HTML/CSS/JS visual prototype if desired. After the visual design is approved, Frontend Claude can refactor/convert the prototype into the repository's React + TypeScript structure.
-
-## Rules for Updating This File
-
-After meaningful work, update:
-1. completed checklist items
-2. current phase
-3. blockers/issues
-4. latest handoff
-5. next step
-
-Never mark a feature complete unless it has actually been implemented and tested.
+- [ ] Backend: stand up `POST /api/ask` per API_CONTRACT.md (can
+      start against a stub knowledge base before RAG is fully wired)
+- [ ] Backend: resolve the two open questions in API_CONTRACT.md
+      (topics source, ticket escalation flow)
+- [ ] Frontend: scaffold the React/TS/Tailwind app, port prototype
+      screens as components, wire to mocked API responses matching
+      the contract shapes

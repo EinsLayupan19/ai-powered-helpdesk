@@ -1,132 +1,119 @@
 # API Contract
 
-## Purpose
+Source of truth for every request/response shape between frontend and
+backend. Frontend builds against this even before an endpoint is
+real (mock the shape). Backend implements to match this exactly.
+Change something here → note it in DEVELOPMENT_STATUS.md so the other
+lead sees it.
 
-Contract between Backend Claude and Frontend Claude.
+Base URL: `/api` (adjust once backend picks a mount path)
+Auth: assume `Authorization: Bearer <supabase JWT>` on every route
+below unless noted otherwise.
 
-**Backend implements. Frontend consumes.**
+---
 
-The current scope does **not** include ticket creation, ticket queues, ticket comments, or ticket assignment.
+## Ask the helpdesk
 
-## Status Labels
+`POST /api/ask`
 
-- IMPLEMENTED
-- AGREED
-- MOCKED
-- TODO
-
-## API Conventions
-
-- REST API
-- JSON request/response bodies unless file upload requires multipart
-- Supabase Auth session/token authentication
-- Backend validates all incoming data
-- Consistent error structure
-- Sensitive authorization decisions happen on the backend
-
-## Authentication
-
-Supabase Auth handles:
-- Sign up
-- Email verification
-- Login
-- Password reset
-- Session management
-- Logout
-
-## Chat
-
-Planned:
-```text
-POST /api/chat
-GET  /api/conversations
-GET  /api/conversations/:id
-POST /api/conversations
-DELETE /api/conversations/:id
-POST /api/messages/:id/feedback
+Request
+```json
+{ "conversationId": "string | null", "question": "string" }
 ```
 
-A successful chat response conceptually contains:
-- assistant answer
-- source references when retrieval was used
-- classification metadata only when safe/needed
-- conversation/message identifiers
-- feedback capability
-- verified support-directory references when human assistance is appropriate
-
-If verified information is insufficient, use:
-
-> I don't have enough verified information to answer that accurately.
-
-The frontend may then display appropriate verified support contacts.
-
-## Categories
-
-Planned:
-```text
-GET /api/categories
-```
-
-## Support Directory
-
-Planned:
-```text
-GET /api/support-contacts
-GET /api/support-contacts/:id
-```
-
-Only verified/published support information may be returned to students. The system must never manufacture contact information from AI output.
-
-## Knowledge Base — Admin
-
-Planned:
-```text
-GET  /api/admin/documents
-POST /api/admin/documents
-PATCH /api/admin/documents/:id
-POST /api/admin/documents/:id/publish
-POST /api/admin/documents/:id/archive
-
-GET  /api/admin/faqs
-POST /api/admin/faqs
-PATCH /api/admin/faqs/:id
-DELETE /api/admin/faqs/:id
-
-GET  /api/admin/support-contacts
-POST /api/admin/support-contacts
-PATCH /api/admin/support-contacts/:id
-DELETE /api/admin/support-contacts/:id
-```
-
-## Admin/Staff
-
-Planned endpoint groups may include:
-- staff management
-- analytics
-- notifications
-- audit logs
-
-Exact endpoints must be documented before frontend implementation.
-
-## Errors
-
-Use a consistent shape such as:
-
+Response
 ```json
 {
-  "error": {
-    "code": "ERROR_CODE",
-    "message": "Human-readable message"
-  }
+  "conversationId": "string",
+  "answer": "string",
+  "grounded": true,
+  "sources": [ { "title": "string", "url": "string | null" } ],
+  "escalated": false
+}
+```
+- `grounded: false` + no sources → not enough verified info (fallback state)
+- `escalated: true` → a support ticket was created; include `ticketId`
+
+---
+
+## Conversations
+
+`GET /api/conversations` → list, most recent first
+```json
+[
+  { "id": "string", "title": "string", "preview": "string", "updatedAt": "ISO8601" }
+]
+```
+
+`GET /api/conversations/:id` → full message history
+```json
+{
+  "id": "string",
+  "title": "string",
+  "messages": [
+    { "role": "user" | "ai", "text": "string", "sources": ["string"], "createdAt": "ISO8601" }
+  ]
 }
 ```
 
-## Contract Change Rule
+`DELETE /api/conversations` → clears all history for the user (Settings → "Clear conversation history")
 
-If backend behavior changes:
-1. Update this document.
-2. Update backend implementation.
-3. Update frontend types/integration.
-4. Test the affected flow.
+---
 
-Never silently change an API consumed by the frontend.
+## Profile
+
+`GET /api/profile`
+```json
+{
+  "fullName": "string",
+  "studentNumber": "string",
+  "program": "string",
+  "section": "string",
+  "email": "string",
+  "status": "active | inactive",
+  "conversationsStarted": 0,
+  "topicsAsked": ["string"]
+}
+```
+
+`PATCH /api/profile` — editable fields only (TBD which fields are
+user-editable vs. pulled from the school system; flag in status doc
+once decided)
+
+---
+
+## Notifications
+
+`GET /api/notifications`
+```json
+[
+  { "id": "string", "type": "answer | conversation | announcement | system", "title": "string", "body": "string", "read": false, "createdAt": "ISO8601" }
+]
+```
+
+`POST /api/notifications/read-all` → marks all as read, no body
+
+---
+
+## Settings
+
+`GET /api/settings`
+```json
+{
+  "theme": "light | dark",
+  "notifications": { "answers": true, "announcements": true, "emailSummaries": false },
+  "language": "en | fil"
+}
+```
+
+`PATCH /api/settings` — partial update, same shape
+
+---
+
+## Open questions for Backend Claude
+
+- Topic list on the dashboard ("Academic", "Enrollment", ... "View all
+  topics") — static config or a DB table? Affects whether there's a
+  `/api/topics` endpoint.
+- Ticket escalation flow — what does the student see/receive once a
+  ticket is created?

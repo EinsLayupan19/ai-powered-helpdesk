@@ -23,6 +23,9 @@ const themeIcon = document.getElementById("themeIcon");
 const themeText = document.getElementById("themeText");
 
 
+const settingsThemeToggle = document.getElementById("settingsThemeToggle");
+
+
 function updateThemeUI() {
 
   const dark = document.body.classList.contains("dark");
@@ -34,6 +37,12 @@ function updateThemeUI() {
     : "Dark mode";
 
   topThemeToggle.textContent = dark ? "☀" : "☾";
+
+  if (settingsThemeToggle) {
+
+    settingsThemeToggle.checked = dark;
+
+  }
 
 }
 
@@ -64,6 +73,15 @@ topThemeToggle.addEventListener(
   "click",
   toggleTheme
 );
+
+if (settingsThemeToggle) {
+
+  settingsThemeToggle.addEventListener(
+    "click",
+    toggleTheme
+  );
+
+}
 
 
 /* LOAD SAVED THEME */
@@ -665,3 +683,119 @@ document
 
     }
   );
+
+/* =========================
+   CONVERSATIONS PAGE
+========================= */
+
+const convFullList =
+  document.getElementById("convFullList");
+
+const convSearchInput =
+  document.getElementById("convSearchInput");
+
+
+if (convFullList) {
+
+  convFullList
+    .querySelectorAll("[data-open-chat]")
+    .forEach(item => {
+
+      item.addEventListener("click", () => {
+
+        const title =
+          item.querySelector("strong").textContent.trim();
+
+        openHelpdesk(
+          `I have a question about ${title}.`
+        );
+
+      });
+
+    });
+
+}
+
+
+if (convSearchInput) {
+
+  convSearchInput.addEventListener("input", () => {
+
+    const query =
+      convSearchInput.value.trim().toLowerCase();
+
+    convFullList
+      .querySelectorAll(".conv-full-item")
+      .forEach(item => {
+
+        const title =
+          item.querySelector("strong").textContent.toLowerCase();
+
+        item.style.display =
+          title.includes(query) ? "flex" : "none";
+
+      });
+
+  });
+
+}
+
+
+/* =========================
+   NOTIFICATIONS PAGE
+========================= */
+
+const markAllReadBtn =
+  document.getElementById("markAllReadBtn");
+
+const notifList =
+  document.getElementById("notifList");
+
+
+if (markAllReadBtn) {
+
+  markAllReadBtn.addEventListener("click", () => {
+
+    notifList
+      .querySelectorAll(".notif-item.unread")
+      .forEach(item => {
+
+        item.classList.remove("unread");
+
+      });
+
+    document
+      .querySelector(".notif-toolbar .panel-sub")
+      .textContent = "0 unread";
+
+  });
+
+}
+
+
+/* =========================
+   SETTINGS PAGE
+========================= */
+
+const clearHistoryBtn =
+  document.getElementById("clearHistoryBtn");
+
+if (clearHistoryBtn) {
+
+  clearHistoryBtn.addEventListener("click", () => {
+
+    if (convFullList) {
+
+      convFullList.innerHTML =
+        `<p class="notif-empty">No conversation history yet.</p>`;
+
+    }
+
+    clearHistoryBtn.textContent =
+      "History cleared";
+
+    clearHistoryBtn.disabled = true;
+
+  });
+
+}
