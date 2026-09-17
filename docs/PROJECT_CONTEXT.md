@@ -6,7 +6,7 @@
 
 The goal is to create a centralized student support platform where students can ask school-related questions and receive answers based on verified school knowledge.
 
-When verified information is unavailable or human intervention is needed, the system escalates the issue through a support ticket.
+When verified information is unavailable or human assistance is needed, the system directs the student to the appropriate verified school office or support contact. The system does **not** use a ticketing workflow in the current scope.
 
 ## Problem
 
@@ -20,6 +20,7 @@ Students may need to search through:
 - Announcements
 - FAQs
 - Office procedures
+- Verified school office/support contact information
 
 The system provides one support interface for these questions.
 
@@ -35,7 +36,7 @@ Student
 → Generate grounded answer
 → Show sources
 → Collect feedback
-→ Escalate to human support when needed
+→ Direct to verified school support/contact when needed
 
 ## AI Boundary
 
@@ -64,7 +65,7 @@ If information is insufficient:
 
 > I don't have enough verified information to answer that accurately.
 
-Then provide a support-ticket path.
+Then provide an appropriate verified school office/support contact when available. If no verified contact is available, clearly state that the system does not have enough verified information.
 
 ## Initial Categories
 
@@ -95,7 +96,6 @@ The system may classify:
 - School-specific
 - Retrieval required
 - Suggested department
-- Suggested priority
 - Human support required
 
 AI output is advisory. Backend business rules validate it.
@@ -104,30 +104,24 @@ AI output is advisory. Backend business rules validate it.
 
 ### Student
 - Authentication
-- Chat
+- AI Helpdesk chat
 - Conversation history
 - Source references
 - Feedback
-- Ticket creation
-- Ticket viewing/replies
+- School office/support directory
 - Profile management
 
 ### Staff
-- View permitted tickets
-- Reply
-- Update status
-- Change priority
-- Internal notes
-- Handle department tickets
+- Manage verified knowledge assigned to their area when the implementation supports staff content management
+- Review/manage appropriate school information according to role
 
 ### Admin
-- Ticket management
 - Knowledge document upload
 - Publish/archive documents
 - FAQ management
 - Category management
+- School office/support contact management
 - Analytics
-- Staff assignments
 
 ### Super Admin
 - User management
@@ -137,32 +131,23 @@ AI output is advisory. Backend business rules validate it.
 - System settings
 - Audit logs
 
-## Ticket Escalation
+## Support / Human Assistance
 
-Escalation may occur when:
+The current system does not create or manage support tickets.
+
+When the AI cannot safely answer, the student should be guided toward verified human support through the school office/support directory.
+
+Human-support guidance may occur when:
 - Knowledge is missing
 - Retrieval confidence is insufficient
 - Personal records are required
 - Staff approval is needed
-- Technical troubleshooting fails
+- Technical troubleshooting requires a human
 - Student requests human assistance
 - Sensitive administrative issues occur
 - AI cannot safely answer
 
-## Ticket Statuses
-
-- Open
-- In Progress
-- Waiting for Student
-- Resolved
-- Closed
-
-## Ticket Priorities
-
-- Low
-- Medium
-- High
-- Urgent
+The system must not invent contact information. Only verified contacts in the knowledge base/support directory may be displayed.
 
 ## Technology Direction
 
@@ -179,5 +164,7 @@ Escalation may occur when:
 
 Build the reliable help desk first.
 
-Do not allow optional/stretch features to delay the core:
-authentication → chat → retrieval → grounded answer → sources → feedback → tickets → staff/admin handling → security/testing.
+Core:
+authentication → chat → retrieval → grounded answer → sources → feedback → verified support directory → admin knowledge management → security/testing.
+
+Do not add ticketing workflows unless the project scope is explicitly changed again.
