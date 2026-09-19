@@ -2,188 +2,216 @@
 
 ## Database
 
-Use **Supabase PostgreSQL + pgvector**.
+Use **Supabase PostgreSQL**.
 
-Choose the embedding model before finalizing the vector column dimension.
-
-Use a suitable vector index such as HNSW when supported and justified.
-
-## Identity
-
-Supabase Auth owns authentication identity.
-
-```text
-auth.users
-    ↓
-profiles
-    ↓
-roles
-departments
-```
-
-Do not duplicate authentication credentials in application tables.
+The MVP does not require pgvector or a vector database. Knowledge retrieval starts with normal PostgreSQL filtering/search.
 
 ## Core Tables
 
 ```text
-auth.users
 profiles
-roles
-departments
 categories
-
-documents
-document_chunks
-faqs
+knowledge_articles
 support_contacts
 
 conversations
 messages
-message_sources
 
+support_requests
 feedback
-notifications
+
 audit_logs
-retrieval_logs
-ai_usage_logs
-system_settings
 ```
 
-The previous ticketing tables are intentionally removed from the current scope:
-- `tickets`
-- `ticket_comments`
+Supabase Auth manages authentication identities separately.
 
-Do not recreate them unless the project scope is explicitly changed.
-
-## Important Relationships
+## Relationships
 
 ```text
-auth.users → profiles
-profiles → roles
-profiles → departments
+auth.users
+    ↓
+profiles
+    ↓
+categories / departments as needed
 
-documents → document_chunks
+categories
+    ↓
+knowledge_articles
 
-conversations → messages
-messages → message_sources
+profiles
+    ↓
+conversations
+    ↓
+messages
 
-categories → support_contacts
+profiles
+    ↓
+support_requests
+
+messages
+    ↓
+feedback
 ```
-
-Exact foreign-key relationships should be finalized by backend migrations.
 
 ## Profiles
 
-Possible profile fields:
-- user_id
+Possible fields:
+- id / user_id
 - full_name
 - student_number
-- department_id
-- role_id
+- program
+- section
+- role
+- created_at
+- updated_at
 
-Students must not be able to change their own role.
-
-Role changes belong to authorized administrators.
+Roles should be controlled by the backend/database. Students must not be able to change their own role.
 
 ## Categories
 
-Categories must be database-driven and configurable.
+Categories are database-driven.
 
-Do not hardcode the initial category list throughout frontend/backend code.
+Initial values:
+- Network
+- Hardware
+- Software
+- Printer
+- Account / Login
+- Storage / Files
+- General IT
+- Other
 
-## Documents
+The frontend should load categories from the database instead of duplicating the list in several files.
 
-Documents should support:
-- Upload
-- Processing
-- Chunking
-- Embedding
-- Versioning
-- Publishing
-- Archiving
+## Knowledge Articles
 
-Only appropriate verified/published content should be used for normal retrieval.
+A knowledge article represents a verified troubleshooting guide.
 
-## Document Chunks
+Possible fields:
+- id
+- category_id
+- title
+- keywords
+- problem_description
+- troubleshooting_steps
+- source
+- published
+- created_by
+- created_at
+- updated_at
 
-Chunks should retain enough metadata to trace an answer back to its source document.
+Only published and verified articles should be used for normal AI answers.
 
-The exact schema should be finalized by the backend implementation before frontend integration.
-
-## FAQs
-
-FAQs are curated school knowledge that can be retrieved as verified information.
-
-They should support appropriate publication/activation controls so only approved content is used in normal answering.
+For the MVP, one article can contain its troubleshooting steps directly. Do not create document chunks or embeddings unless they become necessary later.
 
 ## Support Contacts
 
-The support directory stores verified school office/support information that students can use when the AI cannot safely answer.
+Stores verified IT/school support information.
 
 Possible fields:
 - id
 - name
-- category_id or department_id
+- department
 - description
 - location
-- contact information
-- office hours when verified
-- active/published status
+- contact_information
+- office_hours
+- published
 - created_at
 - updated_at
 
-Do not expose unverified or unpublished contacts as authoritative information.
-
-Do not allow the AI to invent support contacts.
+The AI must never invent support contacts. Only active verified records may be shown.
 
 ## Conversations
 
-A conversation contains messages.
+A conversation belongs to one authenticated user.
 
-Messages may have source references.
+Possible fields:
+- id
+- user_id
+- title
+- created_at
+- updated_at
 
-Use a controlled recent-message window for AI context. Never send unlimited history.
+## Messages
+
+Possible fields:
+- id
+- conversation_id
+- role
+- content
+- category
+- created_at
+
+Roles can be:
+- user
+- ai
+
+Keep the recent conversation context limited when sending messages to the AI.
+
+## Support Requests
+
+This is a simple human-help record, not a full ticketing system.
+
+Possible fields:
+- id
+- user_id
+- conversation_id
+- problem_summary
+- category_id
+- status
+- staff_response
+- created_at
+- updated_at
+
+For the MVP, status can remain simple:
+- pending
+- responded
+- closed
+
+Do not add ticket queues, priorities, SLAs, ticket comments, or assignment logic unless scope changes.
 
 ## Feedback
 
-Students can provide feedback on AI answers.
+Possible fields:
+- id
+- message_id
+- user_id
+- rating
+- comment
+- created_at
 
-Feedback should be associated with the relevant message/answer.
+Feedback should belong to the authenticated user and relevant AI response.
 
-## Logs
+## Audit Logs
 
-### retrieval_logs
-Track retrieval behavior and quality-related data.
+Use for important administrative actions such as:
+- knowledge article changes
+- support contact changes
+- role changes
 
-### ai_usage_logs
-Track AI usage needed for monitoring/evaluation.
+Do not log sensitive secrets or unnecessary personal information.
 
-### audit_logs
-Track important administrative/security actions.
-
-## RLS
+## Row-Level Security
 
 Students should only access their own:
-- Conversations
-- Messages
-- Feedback
-- Profile
+- profiles
+- conversations
+- messages
+- support requests
+- feedback
 
-Students may read publicly available verified knowledge/support information according to application rules.
+Students may read published knowledge articles and published support contacts.
 
-Staff/admin access to knowledge-management resources should follow role and department permissions.
+Staff/admin access must be restricted by role.
 
-Admins should access administrative resources according to role.
-
-RLS policies must be tested.
+RLS should be enabled and tested before production use.
 
 ## Database Rules
 
-- Never expose service-role credentials to the frontend.
-- Use migrations for schema changes.
-- Avoid duplicated business rules.
-- Keep foreign-key relationships explicit.
-- Validate sensitive operations on the backend.
-- Do not trust client-provided role/ownership fields.
+- Never expose the Supabase service-role key to the frontend.
+- Use SQL migrations/schema files for repeatable database setup.
+- Keep business rules in the backend/database, not only in JavaScript.
 - Do not store unnecessary sensitive student information.
-- Do not recreate ticket tables for the current MVP.
+- Do not add pgvector just because the system uses AI.
+- Keep the database small enough for the academic MVP.
