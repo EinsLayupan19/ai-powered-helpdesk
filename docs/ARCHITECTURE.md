@@ -2,209 +2,176 @@
 
 ## Architectural Goal
 
-Build a maintainable full-stack school helpdesk with strict separation between:
-- Frontend presentation
-- Backend business logic
-- Database
-- AI provider
-- Retrieval system
-- Security/authorization
+Build a simple full-stack school IT helpdesk that is easy to understand, maintain, and demonstrate for an academic project.
 
-The system is intentionally focused on answering student school concerns from verified information and guiding students to verified school support contacts when the AI cannot safely answer.
+The architecture has four main parts:
+- Frontend
+- Express backend
+- Supabase database/authentication
+- AI service
 
-There is **no ticketing workflow in the current architecture**.
+There is no complex ticketing architecture in the current MVP.
 
 ## High-Level Architecture
 
 ```text
-Student / Staff / Admin
-        |
-        v
-React + TypeScript Frontend
-        |
-        v
-REST API
-        |
-        +--------------------+
-        |                    |
-        v                    v
-   Business Logic       Supabase Auth
-        |
-        +--------------------+
-        |                    |
-        v                    v
- PostgreSQL             AIService
- + pgvector                  |
-        |                    v
-        |              GeminiProvider
-        |
-        v
-Knowledge Base
-Documents → Chunks
-FAQs
-Support Directory
+Student
+   |
+   v
+HTML + CSS + JavaScript
+   |
+   v
+Node.js + Express.js API
+   |
+   +-------------------+
+   |                   |
+   v                   v
+Supabase PostgreSQL   Gemini API
+   |
+   +-------------------+
+   |
+Verified Knowledge
+Support Contacts
+Users / Conversations
+Support Requests
+Feedback
 ```
 
-## Backend Layers
-
-Recommended separation:
+## Simple Project Structure
 
 ```text
-backend/
-├── src/
+ai-powered-helpdesk/
+├── frontend/
+│   ├── index.html
+│   ├── style.css
+│   └── script.js
+│
+├── backend/
+│   ├── server.js
 │   ├── routes/
-│   ├── controllers/
+│   │   ├── auth.js
+│   │   ├── helpdesk.js
+│   │   ├── conversations.js
+│   │   └── admin.js
 │   ├── services/
-│   ├── repositories/
+│   │   ├── ai.js
+│   │   └── knowledge.js
 │   ├── middleware/
-│   ├── validators/
-│   ├── lib/
-│   ├── ai/
-│   ├── rag/
-│   └── types/
-└── tests/
+│   │   └── auth.js
+│   └── db/
+│       └── supabase.js
+│
+├── database/
+│   └── schema.sql
+│
+├── docs/
+├── .env.example
+└── README.md
 ```
 
-Responsibilities:
-- Routes: endpoint registration
-- Controllers: request/response handling
-- Services: business logic
-- Repositories: database access
-- Middleware: auth, authorization, rate limits, errors
-- Validators: request validation
-- AI: provider abstraction
-- RAG: embedding/retrieval/context construction
-
-## Frontend Layers
-
-Recommended structure:
-
-```text
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   ├── layouts/
-│   ├── hooks/
-│   ├── services/
-│   ├── lib/
-│   ├── types/
-│   └── routes/
-└── tests/
-```
-
-## AI Provider Abstraction
-
-Do not scatter Gemini-specific code throughout the application.
-
-Use:
-
-```text
-AIService
-├── generateAnswer()
-├── classifyIntent()
-└── embed()
-
-GeminiProvider implements AIService
-```
-
-Future providers should be possible without rewriting the rest of the application.
+The exact structure may grow as implementation progresses, but unnecessary layers should not be added just for abstraction.
 
 ## Request Lifecycle
 
-### School Question
-
-```text
-Request
-→ Authenticate
-→ Validate
-→ Classify
-→ Determine retrieval requirement
-→ Retrieve verified chunks
-→ Apply retrieval threshold
-→ Build limited context
-→ Generate grounded answer
-→ Attach source references
-→ Log retrieval/AI usage
-→ Return response
-```
-
-### Insufficient Information / Human Support
+### Normal IT Concern
 
 ```text
 Question
-→ Retrieval/classification
-→ Cannot safely answer
-→ Explain limitation
-→ Identify appropriate verified school office/support contact
-→ Show contact information from trusted system data
+  ↓
+Authenticate
+  ↓
+Validate request
+  ↓
+AI classifies category
+  ↓
+Search verified knowledge
+  ↓
+Relevant knowledge found?
+  ├── Yes → AI generates troubleshooting steps
+  │          ↓
+  │       Show answer + knowledge source
+  │
+  └── No → Explain limitation
+             ↓
+          Offer verified IT support
 ```
 
-The system must not invent a contact, office, schedule, or procedure. If no verified support information exists, it must say so clearly.
-
-## Security Gates
-
-Security should exist at multiple levels:
+### Human Help Request
 
 ```text
-Frontend route protection
+Student cannot solve problem
         ↓
-Backend authorization
+Request human help
         ↓
-Supabase RLS
+Create simple support_request record
         ↓
+Authorized IT staff can view/respond
+```
+
+This is intentionally simpler than a full ticketing system.
+
+## AI Service
+
+Keep Gemini-specific code inside one backend service.
+
+```text
+services/ai.js
+├── classifyProblem()
+└── generateTroubleshootingAnswer()
+```
+
+The frontend never calls the Gemini API directly.
+
+## Knowledge Retrieval
+
+The MVP uses simple database retrieval.
+
+Example:
+
+```text
+Student: "The classroom Wi-Fi keeps disconnecting."
+              ↓
+AI category: Network
+              ↓
+Backend searches verified knowledge
+              ↓
+Matching articles / troubleshooting steps
+              ↓
+Gemini receives only the relevant content
+              ↓
+Grounded answer
+```
+
+Possible search fields:
+- category
+- title
+- keywords
+- problem description
+- troubleshooting content
+
+If simple search becomes insufficient, vector search can be added later without changing the student-facing flow.
+
+## Security Boundary
+
+```text
+Browser
+  ↓
+Express authentication/authorization
+  ↓
+Supabase
+  ↓
 Database
 ```
 
-Frontend guards are UX, not the security boundary.
-
-RLS is the database-level security source of truth.
-
-## Knowledge Architecture
-
-```text
-Knowledge Base
-├── Documents
-│   └── Document Chunks
-├── FAQs
-└── Support Directory
-```
-
-Documents should support lifecycle/versioning and only verified/published knowledge should participate in normal production retrieval.
-
-Support directory entries must also be verified before being shown as authoritative contact information.
-
-## Student Experience Architecture
-
-```text
-Login
-  ↓
-Dashboard
-  ↓
-AI Helpdesk
-  ↓
-Question
-  ↓
-Grounded Answer + Sources
-  │
-  ├── Feedback
-  │
-  └── Insufficient Information
-          ↓
-      Support Directory
-```
-
-Conversation history is available separately and should not overload the dashboard.
+The browser is never trusted with service-role credentials or the Gemini API key.
 
 ## Design Principles
 
-- Separation of concerns
-- Explicit contracts
-- Minimal coupling
-- Secure defaults
-- Testability
-- Observable AI behavior
-- No fake production data
-- Incremental development
-- Minimal student-facing UX
-- Reliable information over feature quantity
+- Keep the stack simple
+- Separate frontend and backend
+- Keep AI calls on the backend
+- Use verified knowledge
+- Never invent school information
+- Avoid unnecessary abstractions
+- Do not build ticketing unless scope changes
+- Build and test one feature at a time
