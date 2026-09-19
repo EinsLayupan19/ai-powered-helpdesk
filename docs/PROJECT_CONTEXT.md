@@ -4,167 +4,130 @@
 
 **AI-Powered School Help Desk and Student Support System**
 
-The goal is to create a centralized student support platform where students can ask school-related questions and receive answers based on verified school knowledge.
+The system gives students one simple place to ask school IT and support concerns. The AI identifies the concern, finds relevant verified knowledge, and provides troubleshooting steps. If the available information is not enough, the system directs the student to verified IT/school support.
 
-When verified information is unavailable or human assistance is needed, the system directs the student to the appropriate verified school office or support contact. The system does **not** use a ticketing workflow in the current scope.
+The current scope intentionally avoids a complex ticketing workflow.
 
-## Problem
+## Main Problem
 
-Students may need to search through:
-- Student handbooks
-- Registrar documents
-- Finance policies
-- Library rules
-- IT guides
-- Academic calendars
-- Announcements
-- FAQs
-- Office procedures
-- Verified school office/support contact information
+Students may not know how to troubleshoot common school technology problems such as:
+- Wi-Fi/network connection
+- Computer or hardware problems
+- Software problems
+- Printer problems
+- Account/login problems
+- File/storage problems
 
-The system provides one support interface for these questions.
+The system reduces the need to search through separate guides or immediately ask IT staff for common issues.
 
 ## Primary Flow
 
 Student
-→ Authenticate
-→ Ask question
-→ Classify intent
-→ Determine whether school knowledge is required
-→ Retrieve verified knowledge
-→ Check retrieval quality
-→ Generate grounded answer
-→ Show sources
-→ Collect feedback
-→ Direct to verified school support/contact when needed
+→ Login
+→ Describe the problem
+→ AI classifies the problem
+→ Search verified knowledge
+→ Generate troubleshooting steps
+→ Student tries the steps
+→ Solved OR request human help
+→ Verified IT support information is shown when needed
 
 ## AI Boundary
 
-This is NOT an unrestricted chatbot.
+This is a focused helpdesk assistant, not an unrestricted chatbot.
 
-For school-specific questions:
+For school-specific information, the answer must be based on verified knowledge stored in the system.
 
-**Verified Knowledge Base → Retrieval → Grounded Answer**
-
-The AI must never fabricate:
-- Policies
-- Fees
-- Deadlines
-- Requirements
+The AI must never invent:
+- School policies
+- IT procedures
+- Account requirements
 - Office hours
+- Contact information
 - Room numbers
 - Staff information
-- Contact information
-- Academic rules
-- Enrollment procedures
-- Events
-- Schedules
+- Fees or deadlines
 - Student records
 
-If information is insufficient:
+If the system does not have enough verified information:
 
 > I don't have enough verified information to answer that accurately.
 
-Then provide an appropriate verified school office/support contact when available. If no verified contact is available, clearly state that the system does not have enough verified information.
+Then show an appropriate verified support contact when available.
 
 ## Initial Categories
 
-Categories are database-driven and configurable by admins.
+Categories are database-driven.
 
 Initial categories:
-- Academic
-- Enrollment
-- Registrar
-- Finance
-- Library
-- IT Support
-- Student Affairs
-- Campus Facilities
-- Events
-- Faculty/Department
-- Scholarships
-- General Information
+- Network
+- Hardware
+- Software
+- Printer
+- Account / Login
+- Storage / Files
+- General IT
 - Other
 
 Do not hardcode these throughout the application.
 
 ## AI Classification
 
-The system may classify:
-- Category
-- Intent
-- School-specific
-- Retrieval required
-- Suggested department
-- Human support required
+The AI may return:
+- category
+- short problem summary
+- suggested troubleshooting approach
+- human support required
 
-AI output is advisory. Backend business rules validate it.
+AI output is advisory. Backend rules decide what information can actually be shown.
 
 ## Main Features
 
 ### Student
-- Authentication
-- AI Helpdesk chat
+- Login
+- AI Help Desk
 - Conversation history
-- Source references
+- Troubleshooting steps
 - Feedback
-- School office/support directory
-- Profile management
+- Verified IT support directory
 
-### Staff
-- Manage verified knowledge assigned to their area when the implementation supports staff content management
-- Review/manage appropriate school information according to role
+### IT Staff
+- View escalated help requests
+- Respond to requests that require human help
+- Manage assigned troubleshooting knowledge when enabled
 
 ### Admin
-- Knowledge document upload
-- Publish/archive documents
-- FAQ management
-- Category management
-- School office/support contact management
-- Analytics
-
-### Super Admin
-- User management
-- Role management
-- Department management
-- Administrator management
-- System settings
-- Audit logs
+- Add/edit/delete verified knowledge
+- Manage categories
+- Manage support contacts
+- Manage users/roles as needed
+- View basic usage/feedback information
 
 ## Support / Human Assistance
 
-The current system does not create or manage support tickets.
+There is no ticketing system in the current MVP.
 
-When the AI cannot safely answer, the student should be guided toward verified human support through the school office/support directory.
+When the AI cannot safely solve the problem, the student can choose to request human assistance. The system records the help request as a simple support request and makes it available to authorized IT staff.
 
-Human-support guidance may occur when:
-- Knowledge is missing
-- Retrieval confidence is insufficient
-- Personal records are required
-- Staff approval is needed
-- Technical troubleshooting requires a human
-- Student requests human assistance
-- Sensitive administrative issues occur
-- AI cannot safely answer
+The MVP should not implement ticket queues, ticket statuses, ticket comments, SLAs, or complex assignment workflows.
 
-The system must not invent contact information. Only verified contacts in the knowledge base/support directory may be displayed.
+## Technology Stack
 
-## Technology Direction
+Keep the implementation beginner-friendly:
 
-- React + TypeScript + Tailwind for frontend
-- Node.js + TypeScript backend
-- Supabase PostgreSQL
-- Supabase Auth
-- PostgreSQL + pgvector
-- Gemini API through an AI service abstraction
-- REST API
-- Zod validation
+- **Frontend:** HTML, CSS, JavaScript
+- **Backend:** Node.js + Express.js
+- **Database:** Supabase PostgreSQL
+- **Authentication:** Supabase Auth
+- **AI:** Gemini API through the backend
+- **Deployment:** Vercel for frontend, Railway/Render for backend
+
+For knowledge retrieval, use a simple database search/filter approach first. Vector databases, pgvector, embeddings, and full RAG infrastructure are optional future improvements, not MVP requirements.
 
 ## MVP Principle
 
-Build the reliable help desk first.
+Build the smallest reliable helpdesk first:
 
-Core:
-authentication → chat → retrieval → grounded answer → sources → feedback → verified support directory → admin knowledge management → security/testing.
+**Login → Ask → Classify → Search verified knowledge → Troubleshooting steps → Feedback / Human help**
 
-Do not add ticketing workflows unless the project scope is explicitly changed again.
+Do not add complex architecture or ticketing unless the project scope is explicitly changed.
