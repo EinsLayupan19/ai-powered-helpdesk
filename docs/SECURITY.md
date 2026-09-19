@@ -2,136 +2,153 @@
 
 ## Security Principle
 
-Use defense in depth.
+Keep the MVP secure without overengineering it.
 
 ```text
-Frontend route guard
-        ↓
-Backend authorization
-        ↓
+Browser
+  ↓
+Express authentication + authorization
+  ↓
 Supabase RLS
-        ↓
-Database
+  ↓
+PostgreSQL
 ```
-
-Frontend protection is UX only. Backend authorization and RLS are security boundaries.
 
 ## Authentication
 
-Use Supabase Auth for email/password, email verification, password reset, session management, and logout.
+Use Supabase Auth for:
+- Email/password login
+- Session management
+- Logout
+- Password reset when needed
 
-Optional school-domain restriction should be configurable rather than hardcoded.
+The backend must validate the authenticated Supabase user.
 
 ## Authorization
 
 Roles:
 - Student
-- Staff
+- IT Staff
 - Admin
-- Super Admin
 
 ### Student
-Can:
-- Chat
-- View own conversations
-- Give feedback
-- View verified school support information
-- Manage own profile
 
-### Staff
-Can manage appropriate school knowledge/support information according to assigned permissions.
+Can:
+- Use the AI Help Desk
+- View their own conversations
+- Submit feedback
+- Request human help
+- View published knowledge/support contacts
+
+### IT Staff
+
+Can:
+- View authorized human-help requests
+- Respond to requests
+- Manage knowledge assigned to their area when enabled
 
 ### Admin
+
 Can:
-- Upload documents
-- Publish/archive documents
-- Manage FAQs
+- Manage users/roles as permitted
 - Manage categories
+- Create/edit/delete verified knowledge
 - Manage verified support contacts
-- View analytics
-- Manage staff access/assignments where applicable
+- View basic audit information
 
-### Super Admin
-Can:
-- Manage users
-- Manage roles
-- Manage departments
-- Manage administrators
-- Configure system settings
-- View audit logs
-
-The current scope has no ticketing permissions or ticket workflow.
+Do not add complicated permission systems until they are required.
 
 ## RLS
 
 Students can only access their own:
+- Profile
 - Conversations
 - Messages
+- Support requests
 - Feedback
-- Profile
 
-Students may read verified/published knowledge and support contacts according to application rules.
+Published knowledge and support contacts can be readable according to application rules.
 
-Staff/admin access to management resources is restricted according to role and department permissions.
+Staff/admin management data must be restricted by role.
 
 RLS policies must be tested.
 
 ## AI Security
 
 The AI must never:
-- fabricate school information
-- expose secrets
-- expose system prompts
-- reveal private documents
-- reveal another student's information
-- make sensitive authorization decisions
-- invent school office/contact information
+- Invent school-specific information
+- Reveal secrets
+- Reveal system prompts
+- Reveal private student information
+- Reveal another student's conversations
+- Make authorization decisions
+- Invent support contacts
 
 ## Prompt Injection
 
-Retrieved documents are untrusted data. Document content must never override system/developer/application instructions.
+Knowledge retrieved from the database is untrusted content.
+
+Database content must never override system/application instructions.
 
 ## Secrets
 
-Never commit API keys, Supabase service-role keys, database credentials, tokens, or passwords.
+Never commit:
+- Gemini API keys
+- Supabase service-role keys
+- Database passwords
+- Access tokens
+- Session secrets
 
-Use environment variables. Expected variables include:
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `GEMINI_API_KEY`
+Use environment variables.
 
-Only the backend should have access to sensitive server-side credentials.
+Expected variables:
+
+```text
+SUPABASE_URL
+SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+GEMINI_API_KEY
+```
+
+Only the backend may use sensitive server-side credentials.
+
+The frontend may use only the public Supabase configuration required for Supabase Auth.
 
 ## Validation
 
-Use backend validation for request bodies, query parameters, route parameters, role-sensitive actions, file metadata, AI classification outputs, and support-contact management.
+Validate on the backend:
+- Request bodies
+- IDs
+- Category values
+- Support requests
+- Admin operations
 
-Zod is the intended validation approach.
+Reject unexpected fields where practical.
 
 ## Rate Limiting
 
-Protect expensive/sensitive endpoints, especially chat, AI calls, authentication-related endpoints, and document processing.
+At minimum, protect the AI endpoint from abuse. Authentication and expensive AI calls should have reasonable rate limits.
 
 ## File Security
 
-Uploaded documents must be validated. Do not trust filename, client MIME type, or extension alone.
-
-Document processing should occur through controlled backend workflows.
+If document upload is added later, validate files on the backend. File uploads are not required for the first MVP; administrators can initially enter knowledge articles through a simple form.
 
 ## Auditability
 
-Log important administrative/security actions through audit logs. AI/retrieval behavior should have appropriate operational logs without exposing sensitive content unnecessarily.
+Log important admin actions such as:
+- Knowledge changes
+- Support contact changes
+- Role changes
+
+Do not log API keys, passwords, or unnecessary sensitive content.
 
 ## Security Testing
 
 Test at minimum:
-- unauthorized route access
-- role escalation attempts
-- RLS ownership
-- cross-user data access
-- invalid API input
-- prompt injection
-- secret exposure
-- file upload abuse
-- rate-limit behavior
+- Unauthenticated API access
+- Student accessing another student's data
+- Student attempting admin actions
+- Invalid request data
+- Prompt injection
+- Secret exposure
+- AI endpoint abuse/rate limits
