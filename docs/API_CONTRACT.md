@@ -1,119 +1,188 @@
 # API Contract
 
-Source of truth for every request/response shape between frontend and
-backend. Frontend builds against this even before an endpoint is
-real (mock the shape). Backend implements to match this exactly.
-Change something here → note it in DEVELOPMENT_STATUS.md so the other
-lead sees it.
+Source of truth for the frontend/backend request and response shapes.
 
-Base URL: `/api` (adjust once backend picks a mount path)
-Auth: assume `Authorization: Bearer <supabase JWT>` on every route
-below unless noted otherwise.
+Base URL: `/api`
 
----
+Authentication:
+`Authorization: Bearer <supabase JWT>`
 
-## Ask the helpdesk
+## Ask the Help Desk
 
 `POST /api/ask`
 
-Request
+Request:
+
 ```json
-{ "conversationId": "string | null", "question": "string" }
+{
+  "conversationId": "string | null",
+  "question": "string"
+}
 ```
 
-Response
+Response:
+
 ```json
 {
   "conversationId": "string",
+  "category": "Network",
   "answer": "string",
-  "grounded": true,
-  "sources": [ { "title": "string", "url": "string | null" } ],
-  "escalated": false
+  "sources": [
+    {
+      "id": "string",
+      "title": "string"
+    }
+  ],
+  "needsHumanHelp": false
 }
 ```
-- `grounded: false` + no sources → not enough verified info (fallback state)
-- `escalated: true` → a support ticket was created; include `ticketId`
 
----
+If verified knowledge is insufficient:
+
+```json
+{
+  "conversationId": "string",
+  "category": "Other",
+  "answer": "I don't have enough verified information to answer that accurately.",
+  "sources": [],
+  "needsHumanHelp": true
+}
+```
+
+The backend must not return fabricated school-specific information.
 
 ## Conversations
 
-`GET /api/conversations` → list, most recent first
+`GET /api/conversations`
+
+Returns the authenticated user's conversations, most recent first.
+
 ```json
 [
-  { "id": "string", "title": "string", "preview": "string", "updatedAt": "ISO8601" }
+  {
+    "id": "string",
+    "title": "string",
+    "updatedAt": "ISO8601"
+  }
 ]
 ```
 
-`GET /api/conversations/:id` → full message history
+`GET /api/conversations/:id`
+
 ```json
 {
   "id": "string",
   "title": "string",
   "messages": [
-    { "role": "user" | "ai", "text": "string", "sources": ["string"], "createdAt": "ISO8601" }
+    {
+      "role": "user",
+      "text": "string",
+      "createdAt": "ISO8601"
+    },
+    {
+      "role": "ai",
+      "text": "string",
+      "sources": [
+        {
+          "id": "string",
+          "title": "string"
+        }
+      ],
+      "createdAt": "ISO8601"
+    }
   ]
 }
 ```
 
-`DELETE /api/conversations` → clears all history for the user (Settings → "Clear conversation history")
+`DELETE /api/conversations`
 
----
+Clears conversation history for the authenticated user.
+
+## Support Contacts
+
+`GET /api/support-contacts`
+
+Returns active verified support contacts.
+
+## Human Help
+
+`POST /api/support-requests`
+
+Request:
+
+```json
+{
+  "conversationId": "string",
+  "problemSummary": "string",
+  "category": "string"
+}
+```
+
+Response:
+
+```json
+{
+  "id": "string",
+  "status": "pending",
+  "createdAt": "ISO8601"
+}
+```
+
+This is a simple support request. It is not a ticketing workflow.
+
+## Feedback
+
+`POST /api/feedback`
+
+Request:
+
+```json
+{
+  "messageId": "string",
+  "rating": "helpful | not_helpful",
+  "comment": "string | null"
+}
+```
 
 ## Profile
 
 `GET /api/profile`
+
+Returns the authenticated user's profile.
+
+`PATCH /api/profile`
+
+Updates only fields explicitly allowed by the backend.
+
+## Admin Knowledge
+
+`GET /api/admin/knowledge`
+
+`POST /api/admin/knowledge`
+
+`PATCH /api/admin/knowledge/:id`
+
+`DELETE /api/admin/knowledge/:id`
+
+Only authorized staff/admin users may use these routes.
+
+## Admin Categories
+
+`GET /api/categories`
+
+Returns the database-driven category list.
+
+## Error Shape
+
+Use a consistent error response:
+
 ```json
 {
-  "fullName": "string",
-  "studentNumber": "string",
-  "program": "string",
-  "section": "string",
-  "email": "string",
-  "status": "active | inactive",
-  "conversationsStarted": 0,
-  "topicsAsked": ["string"]
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Human-readable message"
+  }
 }
 ```
 
-`PATCH /api/profile` — editable fields only (TBD which fields are
-user-editable vs. pulled from the school system; flag in status doc
-once decided)
-
----
-
-## Notifications
-
-`GET /api/notifications`
-```json
-[
-  { "id": "string", "type": "answer | conversation | announcement | system", "title": "string", "body": "string", "read": false, "createdAt": "ISO8601" }
-]
-```
-
-`POST /api/notifications/read-all` → marks all as read, no body
-
----
-
-## Settings
-
-`GET /api/settings`
-```json
-{
-  "theme": "light | dark",
-  "notifications": { "answers": true, "announcements": true, "emailSummaries": false },
-  "language": "en | fil"
-}
-```
-
-`PATCH /api/settings` — partial update, same shape
-
----
-
-## Open questions for Backend Claude
-
-- Topic list on the dashboard ("Academic", "Enrollment", ... "View all
-  topics") — static config or a DB table? Affects whether there's a
-  `/api/topics` endpoint.
-- Ticket escalation flow — what does the student see/receive once a
-  ticket is created?
+Do not expose stack traces, secrets, database credentials, or internal prompts.
