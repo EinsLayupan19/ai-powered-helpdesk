@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
 import type { ReactNode } from "react";
 
 type IconName = "chat"|"calendar"|"users"|"bell"|"settings"|"search"|"plus"|"send"|"info"|"map"|"mail"|"phone"|"sun"|"moon"|"chevron"|"more"|"document"|"book"|"shield"|"logout"|"close"|"check";
@@ -119,12 +119,12 @@ function ProfilePage(){return <Page title="Profile" subtitle="Your EagleDesk stu
 function Page({title,subtitle,children}:{title:string;subtitle:string;children:ReactNode}){return <main className="page"><header className="page-header"><div><h1>{title}</h1><p>{subtitle}</p></div><Avatar/></header>{children}</main>}
 
 export default function App(){
-  const [page,setPage]=useState("chats");
+  const [page,setPage]=useState<"chats"|"calendar"|"contact"|"notifications"|"settings"|"profile">("chats");
   const [topic,setTopic]=useState("Enrollment Requirements");
   const [dark,setDark]=useState(false);
-  const select=(p:string)=>setPage(p);
+  const select=(p:typeof page)=>setPage(p);
   const newChat=()=>{setTopic("New conversation");setPage("chats")};
-  const content=useMemo(()=>({calendar:<CalendarPage/>,contact:<ContactPage/>,notifications:<NotificationsPage/>,settings:<SettingsPage dark={dark} setDark={setDark}/>,profile:<ProfilePage/>}[page]),[page,dark]);
+  const content = page==="calendar" ? <CalendarPage/> : page==="contact" ? <ContactPage/> : page==="notifications" ? <NotificationsPage/> : page==="settings" ? <SettingsPage dark={dark} setDark={setDark}/> : <ProfilePage/>;
   return <div className={"app-shell "+(dark?"theme-dark":"")}><Sidebar page={page} setPage={select} openProfile={()=>setPage("profile")}/><div className="workspace">
     {page==="chats"?<><ConversationPanel selected={topic} onSelect={x=>setTopic(x)} onNew={newChat}/><Chat topic={topic} onNew={newChat}/></>:content}
   </div><MobileNav page={page} setPage={select}/></div>;
