@@ -4,6 +4,13 @@ Read top-to-bottom before starting a session. Add a new entry at the top after m
 
 ---
 
+## 2026-10-05 — EagleDesk student workflow prototype
+
+- Reworked the existing React/Vite demo into searchable, persistent chat sessions with a responsive app shell and student profile menu.
+- Added personal calendar entries, schoolwork CRUD/status controls, and in-app/browser reminder processing backed by browser local storage.
+- Kept official demo school dates read-only and separate from personal items; no Supabase, authentication, AI API, or server-side scheduler is connected yet.
+- Verified with `npm run build` and `npx tsc --noEmit`.
+
 ## 2026-09-19 — Architecture simplified
 
 - **DECISION:** Simplified the planned stack to HTML/CSS/JavaScript + Node.js/Express + Supabase PostgreSQL/Auth + Gemini API.
