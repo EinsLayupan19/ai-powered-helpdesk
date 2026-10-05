@@ -233,3 +233,170 @@ The second-semester dates and labels are taken directly from the source. file
 3. If a student asks for the current academic calendar, use the latest approved calendar available in the knowledge base instead.
 4. If the student asks whether a current class, exam, holiday, or enrollment activity is happening today, do not use this historical calendar to answer.
 5. When answering questions specifically about AY 2024–2025, use the dates recorded above and clearly identify the academic year.
+
+
+## 16. Official NEU Website Knowledge
+
+**Primary source:** https://neu.edu.ph/
+
+The official New Era University website should be treated as a primary source for university information that may change over time. When a question concerns current procedures, offices, contacts, programs, payment procedures, or official announcements, prefer the latest information published on the official NEU website.
+
+### 16.1 General University Information
+
+- New Era University is located at No. 9 Central Avenue, New Era, Quezon City, Philippines, 1107.
+- General contact: (02) 8981-4221.
+- General email: info@neu.edu.ph.
+- Official website: https://neu.edu.ph/
+- The official site lists campuses in Quezon City (Main), Pampanga, Lipa, General Santos City, and Rizal.
+- The site provides sections for Academics, Admissions, Finance, Student Services, Registrar Services, Research, the NEU Library, campuses, and other university resources.
+
+**Source:** https://neu.edu.ph/
+
+### 16.2 Admissions
+
+The official Admissions page currently lists the following general admission process:
+
+**Online submission**
+- Submit required documents digitally through the Admission Form.
+- Requirements include an accomplished Photo Release Form and proof of identification.
+- Freshmen requirements include an SHS Report Card (F-138) and Good Moral Certificate.
+- Transferees and Graduate School applicants may need a Transcript of Records and Transfer Credential Certificate/Honorable Dismissal.
+
+**Admission Office**
+- Admission Office: 1st Floor, Room M106.
+- The website states this procedure is officially starting June 1, 2026.
+- Hardcopy documents are submitted for validation.
+- Applicants also complete the Photo Consent/Data Privacy Form and the General Student Personal Information Sheet (GSPIS).
+
+**Source:** https://neu.edu.ph/main/admissions
+
+### 16.3 College Enrollment Procedure
+
+The official enrollment page lists these steps:
+
+1. **Medical Consultation** — College Clinic, Room M235; submit X-Ray and physical examination results and obtain medical clearance.
+2. **Dean's Advising & Encoding of Subjects** — respective Dean's Office; includes interview, enrollment authorization, course advising, and subject encoding.
+3. **Payment of Fees** — Cashier, Rooms M201–M202; payment of matriculation fees and issuance of the Certificate of Matriculation (COM) and Official Receipt (OR).
+4. **Application of ID & Institutional Accounts** — use the NEU institutional email and submit the required picture/signature forms. The page provides CSD Helpdesk, Integrated School ID, and College ID submission forms.
+
+The page also states that the permanent student number is reflected in the COM.
+
+**Source:** https://neu.edu.ph/main/admissions
+
+### 16.4 University Systems and CSD Support
+
+The official NEU privacy notice identifies university service systems including:
+
+- NEUVLE — https://neuvle.neu.edu.ph
+- NEU Automate — https://automate.neu.edu.ph
+- NEU Website — https://neu.edu.ph
+- Google Suite / institutional email — student and faculty accounts ending in @neu.edu.ph
+
+For concerns about registering/accessing university systems, the official source directs users to the Computer Services Department (CSD).
+
+**CSD contact**
+- Email: computerservices@neu.edu.ph
+- Telephone/Mobile: 8981-4221
+- Helpdesk Online: 8981-4221
+- Helpdesk schedule listed by NEU: Monday–Friday, 8:00 AM–4:30 PM
+
+**Source:** https://neu.edu.ph/main/notice
+
+### 16.5 Payment of Fees
+
+The official Finance page provides payment procedures for bank deposits, online banking, credit-card payments, and payment confirmation.
+
+Important general rules from the official page:
+- Use the payment method and campus-specific instructions published by NEU.
+- Keep a clear copy/photo/scan of the transaction or deposit slip.
+- Submit the appropriate official Payment Confirmation Form.
+- Check the university email for transaction status.
+- Proof-of-payment uploads must follow the size and format requirements stated by the official form/page.
+- The Finance page states that students should regularly check their student account for the updated balance.
+- Students should refer to the official academic calendar for payment deadlines.
+- Keep payment receipts for personal records.
+- Only submit payment information through official university channels.
+
+**Source:** https://neu.edu.ph/main/payment
+
+**AI rule:** Do not provide or invent bank account numbers from memory. If a student asks for current payment account details, direct them to the official NEU Payment Procedure page and use only the latest published information.
+
+### 16.6 Student Services
+
+The official Student Services page lists services and offices including:
+
+- Office of Student Affairs and Services (OSAS)
+- Office of Student Discipline
+- Guidance and Counseling Center
+- Central Student Council
+- Student Organizations
+- National Service Training Program (NSTP)
+- Office of Career Placement and Industry Linkages (OCPIL)
+
+**OSAS**
+- Location: Room 434, 4th Floor, Main Building
+- Email: osas@neu.edu.ph
+- Contact listed by NEU: +63 976 020 3303
+
+**Guidance and Counseling Center**
+- Location: Room 210, 2nd Floor, Main Building
+- Email: guidance@neu.edu.ph
+- Contact listed by NEU: +63 977 614 3676
+
+**OCPIL**
+- Location: Room 201, 2nd Floor, Integrated School Building B
+- Email: ocpil@neu.edu.ph
+- Contact listed by NEU: +63 956 471 8032
+
+The page describes OCPIL services as including career guidance, industry linkages, professional development, job placement, and alumni support.
+
+**Source:** https://neu.edu.ph/main/student-services
+
+### 16.7 Academics and Programs
+
+The official Academics section lists undergraduate programs and colleges, as well as graduate studies, law, medicine, ETEEAP, ALS, and the Integrated School.
+
+For the College of Informatics and Computing Studies, the official site lists:
+- Bachelor of Science in Computer Science (BSCS)
+- Bachelor of Science in Information Technology (BSIT)
+- Bachelor of Science in Entertainment and Multimedia Computing (BSEMC)
+- Bachelor of Science in Information Systems (BSIS)
+
+The official BSIT description says the program covers the utilization of hardware and software technologies involving planning, installing, customizing, operating, managing/administering, and maintaining IT infrastructure to provide computing solutions for organizational needs.
+
+**Source:** https://neu.edu.ph/main/academics
+
+### 16.8 Official Contact and Virtual Offices
+
+The official Contact Us page provides a Main Campus Directory and states that departments and colleges have Virtual Offices listed with their office hours.
+
+General information:
+- Address: No. 9, Central Avenue, New Era, Quezon City, Philippines, 1107
+- Telephone: (02) 8981-4221
+- Email: info@neu.edu.ph
+
+The page lists Virtual Office hours as 8:00 AM–5:00 PM, Monday–Friday for the offices shown on the directory.
+
+**Source:** https://neu.edu.ph/main/contact-us
+
+### 16.9 Current Calendar Source Rule
+
+The official NEU website currently publishes an **Academic Calendar for Tertiary Level, Midyear AY 2025–2026**, with the midyear term running **June 8, 2026–July 17, 2026**. The official calendar lists enrollment, start of classes, course changes, mid-term examinations, dropping, final examinations, and grade-encoding dates.
+
+The official site also publishes the **1st Semester AY 2025–2026** calendar, with a duration of **August 11, 2025–December 12, 2025**.
+
+**Sources:**
+- https://neu.edu.ph/main/img/School_calendar.pdf
+
+**AI rule:** Always prefer the latest official NEU calendar available. If a newer calendar is provided by the project owner or published officially, update the knowledge base and stop relying on older calendar dates for current-date questions.
+
+### 16.10 Official Website Source Rules
+
+1. Prefer the official NEU website over third-party sources for university procedures and information.
+2. Treat information that includes a date, office, contact number, schedule, or procedure as potentially changeable.
+3. When the official website has a newer version of information, prefer the newer source.
+4. Do not invent requirements, fees, office locations, contacts, or deadlines.
+5. If the website does not provide enough information to answer a student's question, tell the student what official office or source they should contact.
+6. For payment account details, use the current official Finance page rather than a copied value in the AI's memory.
+7. For academic calendar questions, use the latest approved calendar, not historical calendars.
+8. The official website is a source of information, but EagleDesk itself is not an official NEU system.
