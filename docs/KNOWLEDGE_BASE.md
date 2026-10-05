@@ -139,3 +139,97 @@ The following schedules are for the **3rd Year BSIT sections** shown in the prov
 3. Do not combine schedules from different sections.
 4. Do not invent a room when the source does not provide one.
 5. If the student asks about a schedule change, cancellation, or a date-specific class meeting, this static schedule should not be treated as proof of a current change; advise checking the latest official school announcement or faculty instruction.
+
+
+## 15. Previous Academic Calendar — School Year 2024–2025
+
+**Source:** New Era University Academic Calendar, School Year 2024–2025. This is a **previous/historical calendar** and must not be treated as the current academic calendar. The source identifies semestral programs and provides dates for enrollment, classes, examinations, holidays, dropping, graduation-related deadlines, and other academic activities. fileciteturn6file0L2-L5
+
+### First Semester
+**First Semester:** August 12, 2024 – December 13, 2024. fileciteturn6file0L61-L61
+
+Key dates recorded in the source:
+- June 3 – August 17, 2024 — Enrollment Period
+- June 12, 2024 — Regular Holiday: Independence Day
+- June 17, 2024 — Tentative: National Holiday
+- July 27, 2024 — Special Holiday: Church Holiday
+- August 12, 2024 — Start of Classes
+- August 13, 2024 — Last Day for Dissolution of Classes
+- August 17, 2024 — Last Day for Course/Subject Changes Due to Dissolved Classes
+- August 19, 2024 — Special Holiday: Quezon Day
+- August 21, 2024 — Special Non-Working Day: Ninoy Aquino Day
+- August 26, 2024 — Regular Holiday: National Heroes Day
+- September 20, 2024 — Last Day for Filing of Application for Graduation for Second Semester AY 2024–2025
+- October 5, 2024 — National Teachers' Day
+- October 7–12, 2024 — Mid-Term Examinations
+- October 31, 2024 — Special Holiday: Church Holiday
+- November 1, 2024 — Special Non-Working Day
+- November 2, 2024 — Additional Special Non-Working Day
+- November 15, 2024 — Last Day for Official Dropping of Courses / Subjects
+- November 30, 2024 — Regular Holiday: Bonifacio Day
+- December 2, 2024 — Start of Admission of New Students for Second Semester AY 2024–2025
+- December 7–13, 2024 — Final Examinations
+- December 8, 2024 — Special Holiday: Church Holiday
+- December 13, 2024 — Last Day for Completion of Incomplete Grade Incurred During First Semester AY 2023–2024
+- December 14, 2024 – January 19, 2025 — Semestral / Holiday Break
+- December 24, 2024 — Additional Special Non-Working Day
+- December 25, 2024 — Regular Holiday
+- December 30, 2024 — Rizal Day
+- December 31, 2024 — Special Non-Working Day: Last Day of the Year 2024
+
+These dates and event labels are taken from the calendar's first-semester section. fileciteturn6file0L6-L33 fileciteturn6file0L34-L60
+
+### Midyear Term
+**Midyear Term:** June 9, 2025 – July 18, 2025. fileciteturn6file0L88-L88
+
+Recorded dates include:
+- June 2–6, 2025 — Enrollment Period
+- June 7, 2025 — Tentative: National Holiday
+- June 9, 2025 — Start of Classes
+- June 11, 2025 — Last Day for Course/Subject Changes Due to Dissolved Classes
+- June 12, 2025 — Regular Holiday: Independence Day
+- June 24–28, 2025 — Mid-Term Examinations
+- July 9, 2025 — Last Day for Official Dropping of Courses / Subjects
+- July 12, 2025 — Tentative: Church Holiday
+- July 14–18, 2025 — Final Examinations
+- July 18, 2025 — Last Day for Completion of Incomplete Grade Incurred During Midyear AY 2023–2024
+- July 19, 2025 — Tentative: Church Holiday
+- July 26, 2025 — Last Day for Encoding of the Official Report of Grades for Midyear AY 2024–2025
+- July 27, 2025 — Special Holiday: Church Holiday
+
+The source also lists the admission and enrollment period for AY 2025–2026 beginning June 2, 2025 onward. fileciteturn6file0L62-L97
+
+### Second Semester
+**Second Semester:** January 20, 2025 – May 24, 2025. fileciteturn6file0L144-L144
+
+Recorded dates include:
+- January 6–18, 2025 — Enrollment Period
+- January 20, 2025 — Start of Classes
+- January 21, 2025 — Last Day for Dissolution of Classes
+- January 25, 2025 — Last Day for Course/Subject Changes Due to Dissolved Classes
+- January 29, 2025 — Additional Special Non-Working Day: Chinese New Year
+- February 21, 2025 — Last Day for Filing of Application for Graduation for First Semester 2025–2026
+- March 13–18, 2025 — Mid-Term Examinations
+- March 31, 2025 — Tentative: National Holiday
+- April 9, 2025 — Regular Holiday: Araw ng Kagitingan
+- April 17–19, 2025 — Regular Holiday
+- April 25, 2025 — Last Day for Official Dropping of Courses / Subjects
+- April 28–30, 2025 — Final Examinations for Graduating Students
+- May 1, 2025 — Regular Holiday: Labor Day
+- May 2–3, 2025 — Special Holiday: Church Holiday
+- May 10, 2025 — Last Day for Encoding of the Official Report of Grades of Graduating Students for Second Semester AY 2024–2025
+- May 20, 2025 — Last Day for Completion of Incomplete Grade
+- May 20–24, 2025 — Final Examinations for Non-Graduating Students
+- May 24, 2025 — Last Day for Encoding of the Official Report of Grades of Non-Graduating Students for Second Semester AY 2024–2025
+- June 6, 2025 — Tentative: National Holiday
+- June 7, 2025 — Regular Holiday: Independence Day
+- June 12, 2025 — Tentative Schedule: Faculty Council Deliberation and Approval
+
+The second-semester dates and labels are taken directly from the source. fileciteturn6file0L98-L144
+
+### Historical-calendar AI rules
+1. Treat this AY 2024–2025 calendar as **historical/previous information**.
+2. Never present these dates as the current academic calendar unless the student explicitly asks about AY 2024–2025.
+3. If a student asks for the current academic calendar, use the latest approved calendar available in the knowledge base instead.
+4. If the student asks whether a current class, exam, holiday, or enrollment activity is happening today, do not use this historical calendar to answer.
+5. When answering questions specifically about AY 2024–2025, use the dates recorded above and clearly identify the academic year.
