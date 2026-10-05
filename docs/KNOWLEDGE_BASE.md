@@ -63,3 +63,79 @@ This document contains verified student procedures provided by the project owner
 4. For the academic calendar, use the latest approved calendar provided to the system.
 5. Keep answers concise and actionable: tell the student where to go, what to prepare, and what to do next when that information is available.
 6. Preserve the distinction between Automate, faculty assistance, school offices, and official announcements.
+
+
+## 14. 3rd Year BSIT Class Schedules
+
+The following schedules are for the **3rd Year BSIT sections** shown in the provided 3rd-year schedule source. Use the section name when answering schedule questions. Do not assume that a subject is offered at the same time or room for another section.
+
+### 3BSIT-1
+| Day | Time | Course Code | Course Title | Room |
+|---|---|---|---|---|
+| Thursday | 7:00 AM–10:00 AM | CCL311-18 | Applications Development & Emerging Technologies (Lab) | M102 |
+| Thursday | 10:00 AM–1:00 PM | ITL313-18 | System Integration & Architecture 2 (Lab) | M108 |
+| Friday | 10:00 AM–1:00 PM | ITLEL3-18 | IT Elective 3 (Lab) | M110 |
+| Friday | 1:00 PM–2:30 PM | CITFE1-18 | Free Elective 1 | M411A |
+| Saturday | 7:00 AM–10:00 AM | ITL312-18 | Information and Assurance and Security 1 (Lab) | M101 |
+| Saturday | 10:00 AM–1:00 PM | ITL314-18 | System Analysis and Design (Lab) | M108 |
+
+### 3BSIT-2
+| Day | Time | Course Code | Course Title | Room |
+|---|---|---|---|---|
+| Tuesday | 7:00 AM–10:00 AM | ITLEL3-18 | IT Elective 3 (Lab) | M108 |
+| Tuesday | 10:00 AM–1:00 PM | CCL311-18 | Applications Development & Emerging Technologies (Lab) | M108 |
+| Thursday | 1:00 PM–4:00 PM | ITL313-18 | System Integration & Architecture 2 (Lab) | M108 |
+| Thursday | 4:00 PM–7:00 PM | CITFE1-18 | Free Elective 1 | M108 |
+| Saturday | 7:00 AM–10:00 AM | ITL314-18 | System Analysis and Design (Lab) | M102 |
+| Saturday | 10:00 AM–1:00 PM | ITL312-18 | Information and Assurance and Security 1 (Lab) | M110 |
+
+### 3BSIT-3
+| Day | Time | Course Code | Course Title | Room |
+|---|---|---|---|---|
+| Tuesday | 2:30 PM–4:00 PM | CITFE1-18 | Free Elective 1 | M411A |
+| Tuesday | 4:00 PM–7:00 PM | CIT313-18 | System Integration & Architecture 2 (Lec) | M109 |
+| Friday | 7:00 AM–10:00 AM | ITLEL3-18 | IT Elective 3 (Lab) | M110 |
+| Friday | 10:00 AM–1:00 PM | CCL311-18 | Applications Development & Emerging Technologies (Lab) | M109 |
+| Saturday | 7:00 AM–10:00 AM | ITL314-18 | System Analysis and Design (Lab) | M108 |
+| Saturday | 10:00 AM–1:00 PM | ITL312-18 | Information and Assurance and Security 1 (Lab) | M101 |
+
+### 3BSIT-4
+| Day | Time | Course Code | Course Title | Room |
+|---|---|---|---|---|
+| Wednesday | 7:00 AM–10:00 AM | ITL314-18 | System Analysis and Design (Lab) | M108 |
+| Wednesday | 10:00 AM–1:00 PM | ITLEL3-18 | IT Elective 3 (Lab) | M108 |
+| Friday | 2:30 PM–4:00 PM | CITFE1-18 | Free Elective 1 | M410A |
+| Friday | 4:00 PM–7:00 PM | ITL313-18 | System Integration & Architecture 2 (Lab) | M109 |
+| Saturday | 7:00 AM–10:00 AM | CCL311-18 | Applications Development & Emerging Technologies (Lab) | M104 |
+| Saturday | 10:00 AM–1:00 PM | ITL312-18 | Information and Assurance and Security 1 (Lab) | M110 |
+
+### 3BSIT-5
+| Day | Time | Course Code | Course Title |
+|---|---|---|---|
+| Wednesday | 7:00 AM–10:00 AM | ITLEL3-18 | IT Elective 3 (Lab) |
+| Wednesday | 10:00 AM–1:00 PM | ITL314-18 | System Analysis and Design (Lab) |
+| Friday | 8:30 AM–10:00 AM | CITFE1-18 | Free Elective 1 |
+| Friday | 10:00 AM–1:00 PM | ITL313-18 | System Integration & Architecture 2 (Lab) |
+| Saturday | 10:00 AM–1:00 PM | ITL312-18 | Information and Assurance and Security 1 (Lab) |
+| Saturday | 1:00 PM–4:00 PM | CCL311-18 | Applications Development & Emerging Technologies (Lab) |
+
+**Room information:** The provided source does not show room values for 3BSIT-5, so the AI must not invent or infer rooms for this section.
+
+### 3BSIT-6
+| Day | Time | Course Code | Course Title |
+|---|---|---|---|
+| Tuesday | 10:00 AM–1:00 PM | ITLEL3-18 | IT Elective 3 (Lab) |
+| Tuesday | 1:00 PM–4:00 PM | ITL313-18 | System Integration & Architecture 2 (Lab) |
+| Wednesday | 11:30 AM–1:00 PM | CITFE1-18 | Free Elective 1 |
+| Wednesday | 1:00 PM–4:00 PM | ITL314-18 | System Analysis and Design (Lab) |
+| Saturday | 10:00 AM–1:00 PM | CCL311-18 | Applications Development & Emerging Technologies (Lab) |
+| Saturday | 1:00 PM–4:00 PM | ITL312-18 | Information and Assurance and Security 1 (Lab) |
+
+**Room information:** The provided source does not show room values for 3BSIT-6, so the AI must not invent or infer rooms for this section.
+
+### Schedule-answer rules
+1. Ask for the student's section if it is not known (for example, 3BSIT-1, 3BSIT-2, etc.) before giving a section-specific schedule.
+2. When a section is specified, answer using that section's schedule above.
+3. Do not combine schedules from different sections.
+4. Do not invent a room when the source does not provide one.
+5. If the student asks about a schedule change, cancellation, or a date-specific class meeting, this static schedule should not be treated as proof of a current change; advise checking the latest official school announcement or faculty instruction.
