@@ -4,6 +4,18 @@ Read top-to-bottom before starting a session. Add a new entry at the top after m
 
 ---
 
+## 2026-10-05 — Phase 2: real authentication (Supabase Auth)
+
+- **Frontend:** `src/Login.tsx` (login, forgot password, set-new-password), `src/auth.ts` (`useAuth`: session restore, sign in/out, password reset), `src/lib/supabase.ts`, `src/user.ts`. `App.tsx` now renders Login unless a valid Supabase session exists; the hardcoded demo student and the fake sign-out toast are gone.
+- **Fail closed:** without `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` the app shows Login with sign-in disabled. University SSO is shown disabled (not configured).
+- **Per-user local data:** conversations, calendar and schoolwork are stored under `eagledesk.student.v2.<user id>`, so users on a shared browser do not see each other's data. Old un-keyed demo data is not migrated.
+- **Backend:** `backend/` (Express + TypeScript). `requireAuth` verifies the bearer token with Supabase Auth on every request (401 invalid, 503 if the auth service is unreachable or unconfigured). Only `GET /api/health` and `GET /api/me` exist so far.
+- **Verified:** `npx tsc --noEmit` (frontend and backend), `npm run build`, and 27 browser checks against a local stand-in for the Supabase Auth HTTP API. **Not yet verified against a real Supabase project.**
+- **Still mocked:** the chat replies (regex), the demo calendar, Student ID / Program / Section ("Not set" until a profiles table exists), the Contact Staff list, and the Knowledge Base (no admin UI or database yet).
+- **Docs conflict (unresolved):** `CLAUDE.md` and several docs still say "no React/TypeScript/Tailwind/pgvector" and describe an IT-troubleshooting scope. They need updating before Phase 3 to reflect the chosen direction (React/TS frontend, Express backend, hybrid Postgres full-text + pgvector retrieval).
+
+---
+
 ## 2026-10-05 — EagleDesk student workflow prototype
 
 - Reworked the existing React/Vite demo into searchable, persistent chat sessions with a responsive app shell and student profile menu.

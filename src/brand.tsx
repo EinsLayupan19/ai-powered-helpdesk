@@ -1,0 +1,2 @@
+export function Eagle({size="md"}:{size?:"sm"|"md"|"lg"}){return <div className={`eagle eagle-${size}`}><svg viewBox="0 0 64 64" fill="none"><path d="M12 34c9-2 12-8 15-17 4 5 7 6 12 6 4 0 8-2 12-5-1 10-4 16-12 21l-7 13-5-12c-6-1-11-3-15-6Z" fill="currentColor"/><path d="M31 24c5 1 8 1 13-1-1 6-4 9-10 11l-3-10Z" fill="var(--surface)"/><circle cx="39" cy="26" r="1.7" fill="var(--ink)"/><path d="m44 29 8 2-8 3" fill="var(--accent-strong)"/></svg></div>}
+export function Logo(){return <div className="logo"><Eagle size="sm"/><span>EagleDesk</span></div>}
