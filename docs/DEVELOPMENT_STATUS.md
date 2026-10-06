@@ -4,17 +4,16 @@ Read top-to-bottom before starting a session. Add a new entry at the top after m
 
 ---
 
-## 2026-10-06 — Phase 3: first real Gemini-backed chat endpoint
+## 2026-10-06 — Phase 4: local verified knowledge retrieval
 
-- **AI integration:** Added a backend AI service interface and Gemini provider using Google's maintained `@google/genai` SDK (`2.27.0`) and the configurable `GEMINI_MODEL` (default `gemini-3.8-flash`). The Gemini API key is read only by the backend.
-- **Endpoint:** `POST /api/ask` requires the existing Supabase `requireAuth` middleware, accepts a bounded message and optional bounded recent history, and returns `{ answer, sources: [] }`. Sources are empty because verified retrieval has not been implemented.
-- **Frontend:** Existing chat now posts the current message to `/api/ask` with the access token from the current Supabase session. It shows a pending state and displays API errors. Removed regex-based school answers; unsupported school-specific questions are instructed to use the verified-information fallback. Existing personal schedule parsing remains limited to explicit personal event intents.
-- **Configuration:** `backend/.env.example` documents `GEMINI_API_KEY` and `GEMINI_MODEL`. Root `.gitignore` ignores backend `.env` files while allowing `.env.example`.
-- **Files:** Added `backend/src/services/ai/{AIService, GeminiProvider, index}.ts` and `backend/package-lock.json`; modified backend config/server/dependencies/env example, `src/App.tsx`, and this status file.
-- **Verified:** Backend TypeScript typecheck and build pass; frontend Vite production build passes; a local `POST /api/ask` without Authorization returned `401 UNAUTHENTICATED`. The `tsx watch` development command could not start in this execution environment (`uv_os_get_passwd returned ENOMEM`), so the built backend was used for the auth check.
-- **Not verified here:** No `backend/.env` or Gemini key is configured in the workspace, and no authenticated user token was available. Live Gemini responses, signed-in calls, expired-token behavior, model/API failure and rate-limit behavior remain to be tested with local credentials.
-- **Limitations:** No RAG, knowledge base, verified school context, source citations, schedule retrieval, or embeddings. Gemini can answer general questions but must refuse school-specific claims without supplied verified context.
-- **Next phase:** Build an approved school knowledge base and RAG using Supabase/Postgres/pgvector, then pass retrieved verified excerpts and source metadata to the provider.
+- **Knowledge layer:** Added a `KnowledgeService` abstraction and deterministic local lexical search. The only schedule ingested is the task-approved 3BSIT-1 timetable, represented as a section-scoped document (`schedule-3bsit-1`). Relevance is measured by normalized token overlap with a minimum threshold.
+- **Safety:** Retrieval requires an explicit matching section for a section-specific schedule. Unknown school questions with no matching document return the exact verified-information fallback without calling Gemini. General questions continue to Gemini with no school context. The Gemini system instruction separates verified context from untrusted history/user content and prohibits cross-section inference.
+- **Endpoint and sources:** Protected `POST /api/ask` still uses `requireAuth`; it now injects retrieved documents into Gemini and returns source metadata (`id`, `title`, `category`) for retrieved context. Supabase authentication was not changed.
+- **Approved knowledge scope:** Only the supplied 3BSIT-1 schedule is ingested. Existing `docs/KNOWLEDGE_BASE.md` also contains schedules for other sections and old academic calendars; those were excluded to honor this phase's explicit 3BSIT-2 fallback and current-calendar safety requirements. No current approved calendar file was found, so calendar retrieval is unavailable.
+- **Files:** Added `backend/src/services/knowledge/{types, LocalKnowledgeService, index}` and `backend/test/knowledge.test.mjs`; changed `backend/src/services/ai/AIService.ts`, `GeminiProvider.ts`, `backend/src/server.ts`, backend test script, and this status file.
+- **Verified:** Automated tests cover the 3BSIT-1 schedule, ITL314 time/room, ITL313 room, 3BSIT-2 isolation, general HTML classification, cashier/policy fallback, schedule-invention refusal, and missing-section fallback. Backend typecheck/build and frontend build pass. Live Gemini output still requires valid local backend credentials.
+- **Limitations:** This is lexical retrieval, not vector RAG. The local approved corpus currently contains only the supplied 3BSIT-1 schedule; cashier identity, policies, and current calendar information are unavailable. Sources reference the schedule document only. No embeddings, database retrieval, or admin ingestion UI.
+- **Next phase:** Add approved knowledge sources as structured documents and tests, then implement vector or hybrid retrieval only after an approved current source corpus is ready.
 
 ---
 

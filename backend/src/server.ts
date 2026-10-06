@@ -4,6 +4,8 @@ import { config } from "./config.js";
 import { requireAuth, type AuthedRequest } from "./middleware/auth.js";
 import { getAIService } from "./services/ai/index.js";
 import type { ConversationTurn } from "./services/ai/AIService.js";
+import { getKnowledgeService, requiresVerifiedKnowledge } from "./services/knowledge/index.js";
+import type { ScheduleEntry } from "./services/knowledge/types.js";
 
 const app = express();
 app.disable("x-powered-by");
@@ -43,12 +45,40 @@ app.post("/api/ask", requireAuth, async (req, res) => {
     recentHistory = history as ConversationTurn[];
   }
 
+  const knowledgeService = getKnowledgeService();
+  const scheduleMatch = await knowledgeService.findSchedule(message.trim());
+  if (scheduleMatch) {
+    if (!scheduleMatch.section || !scheduleMatch.entries.length) {
+      return res.json({ answer: "I don't have enough verified information to answer that accurately.", sources: [] });
+    }
+
+    const schedule = {
+      request: scheduleMatch.request,
+      section: scheduleMatch.section,
+      entries: scheduleMatch.entries,
+    };
+    const answer = schedule.request === "full"
+      ? `Here is the schedule for ${schedule.section}.`
+      : formatScheduleEntry(schedule.entries[0]);
+    return res.json({ answer, sources: [scheduleSource], schedule });
+  }
+
+  const knowledge = await knowledgeService.search(message.trim());
+  if (!knowledge.length && requiresVerifiedKnowledge(message)) {
+    return res.json({ answer: "I don't have enough verified information to answer that accurately.", sources: [] });
+  }
+
   const ai = getAIService();
   if (!ai) return res.status(503).json({ error: { code: "AI_NOT_CONFIGURED", message: "The AI service is not configured on this server." } });
 
   try {
-    const answer = await ai.generateAnswer({ message: message.trim(), history: recentHistory });
-    return res.json({ answer, sources: [] });
+    const answer = await ai.generateAnswer({
+      message: message.trim(),
+      history: recentHistory,
+      verifiedContext: knowledge.map(({ document }) => document),
+    });
+    const sources = knowledge.map(({ document }) => ({ id: document.id, title: document.title, category: document.category }));
+    return res.json({ answer, sources });
   } catch (error: unknown) {
     const failure = error as { code?: unknown; status?: unknown; name?: unknown } | null;
     const code = typeof failure?.code === "string" ? failure.code : "";
@@ -63,6 +93,12 @@ app.post("/api/ask", requireAuth, async (req, res) => {
     return res.status(502).json({ error: { code: "AI_UNAVAILABLE", message: "The AI service is temporarily unavailable. Please try again." } });
   }
 });
+
+const scheduleSource = { id: "schedule-3bsit-1", title: "3BSIT-1 Class Schedule", category: "Class Schedule" };
+
+function formatScheduleEntry(entry: ScheduleEntry): string {
+  return `${entry.courseCode} — ${entry.courseName}\n${entry.day}\n${entry.startTime} – ${entry.endTime}\nRoom ${entry.room}`;
+}
 
 app.use("/api", (_req, res) => { res.status(404).json({ error: { code: "NOT_FOUND", message: "Not found." } }); });
 
