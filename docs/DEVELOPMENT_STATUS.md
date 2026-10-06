@@ -4,6 +4,20 @@ Read top-to-bottom before starting a session. Add a new entry at the top after m
 
 ---
 
+## 2026-10-06 — Phase 3: first real Gemini-backed chat endpoint
+
+- **AI integration:** Added a backend AI service interface and Gemini provider using Google's maintained `@google/genai` SDK (`2.27.0`) and the configurable `GEMINI_MODEL` (default `gemini-3.8-flash`). The Gemini API key is read only by the backend.
+- **Endpoint:** `POST /api/ask` requires the existing Supabase `requireAuth` middleware, accepts a bounded message and optional bounded recent history, and returns `{ answer, sources: [] }`. Sources are empty because verified retrieval has not been implemented.
+- **Frontend:** Existing chat now posts the current message to `/api/ask` with the access token from the current Supabase session. It shows a pending state and displays API errors. Removed regex-based school answers; unsupported school-specific questions are instructed to use the verified-information fallback. Existing personal schedule parsing remains limited to explicit personal event intents.
+- **Configuration:** `backend/.env.example` documents `GEMINI_API_KEY` and `GEMINI_MODEL`. Root `.gitignore` ignores backend `.env` files while allowing `.env.example`.
+- **Files:** Added `backend/src/services/ai/{AIService, GeminiProvider, index}.ts` and `backend/package-lock.json`; modified backend config/server/dependencies/env example, `src/App.tsx`, and this status file.
+- **Verified:** Backend TypeScript typecheck and build pass; frontend Vite production build passes; a local `POST /api/ask` without Authorization returned `401 UNAUTHENTICATED`. The `tsx watch` development command could not start in this execution environment (`uv_os_get_passwd returned ENOMEM`), so the built backend was used for the auth check.
+- **Not verified here:** No `backend/.env` or Gemini key is configured in the workspace, and no authenticated user token was available. Live Gemini responses, signed-in calls, expired-token behavior, model/API failure and rate-limit behavior remain to be tested with local credentials.
+- **Limitations:** No RAG, knowledge base, verified school context, source citations, schedule retrieval, or embeddings. Gemini can answer general questions but must refuse school-specific claims without supplied verified context.
+- **Next phase:** Build an approved school knowledge base and RAG using Supabase/Postgres/pgvector, then pass retrieved verified excerpts and source metadata to the provider.
+
+---
+
 ## 2026-10-05 — Phase 2: real authentication (Supabase Auth)
 
 - **Frontend:** `src/Login.tsx` (login, forgot password, set-new-password), `src/auth.ts` (`useAuth`: session restore, sign in/out, password reset), `src/lib/supabase.ts`, `src/user.ts`. `App.tsx` now renders Login unless a valid Supabase session exists; the hardcoded demo student and the fake sign-out toast are gone.
@@ -12,7 +26,7 @@ Read top-to-bottom before starting a session. Add a new entry at the top after m
 - **Backend:** `backend/` (Express + TypeScript). `requireAuth` verifies the bearer token with Supabase Auth on every request (401 invalid, 503 if the auth service is unreachable or unconfigured). Only `GET /api/health` and `GET /api/me` exist so far.
 - **Verified:** `npx tsc --noEmit` (frontend and backend), `npm run build`, and 27 browser checks against a local stand-in for the Supabase Auth HTTP API. **Not yet verified against a real Supabase project.**
 - **Still mocked:** the chat replies (regex), the demo calendar, Student ID / Program / Section ("Not set" until a profiles table exists), the Contact Staff list, and the Knowledge Base (no admin UI or database yet).
-- **Docs conflict (unresolved):** `CLAUDE.md` and several docs still say "no React/TypeScript/Tailwind/pgvector" and describe an IT-troubleshooting scope. They need updating before Phase 3 to reflect the chosen direction (React/TS frontend, Express backend, hybrid Postgres full-text + pgvector retrieval).
+- **Docs conflict (still unresolved):** `CLAUDE.md` and several older planning docs still describe the prior stack/scope. Update them in a documentation pass so they match the current React/TypeScript frontend, Express backend, and future Supabase/Postgres knowledge-base plan.
 
 ---
 

@@ -6,4 +6,6 @@ export const config = {
   frontendOrigin: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+  geminiApiKey: process.env.GEMINI_API_KEY,
+  geminiModel: process.env.GEMINI_MODEL || "gemini-3.8-flash",
 };
