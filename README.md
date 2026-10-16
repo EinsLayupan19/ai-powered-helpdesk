@@ -102,7 +102,13 @@ relative `/api/ask` calls work with no CORS setup. `render.yaml` describes this 
 4. After the first deploy, in Supabase go to **Authentication > URL Configuration**: set **Site URL** to your Render
    address (for example `https://eagledesk.onrender.com`) and add the same address under **Redirect URLs**. Without
    this, password-reset emails link back to localhost.
-5. Create a student account in Supabase (**Authentication > Users > Add user**) to sign in.
+5. Create a student account in Supabase (**Authentication > Users > Add user**, with an `@neu.edu.ph` email) to sign in.
+6. Optional, to let students sign in with their student ID (for example `12-34567-890`) as well as their email:
+   - In Render, add `SUPABASE_SERVICE_ROLE_KEY` under **Environment** (Supabase: **Project Settings > API keys**, the secret
+     / service_role key). It stays on the server and is never sent to the browser.
+   - In Supabase **Table Editor > profiles**, fill in `student_number` for each student, in exactly that format. A profile
+     row is created automatically when the user is created.
+   - Without the key, entering a student ID tells the student to use their university email instead.
 
 Build and start commands (also usable on any other Node host):
 

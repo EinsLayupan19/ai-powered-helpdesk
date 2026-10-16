@@ -7,6 +7,25 @@ Base URL: `/api`
 Authentication:
 `Authorization: Bearer <supabase JWT>`
 
+## Student ID sign-in (implemented 2026-10-16)
+
+`POST /api/auth/student-sign-in` (no bearer token). The login page uses it when the student types a student ID instead of
+an `@neu.edu.ph` email; email sign-in still goes straight to Supabase Auth from the browser.
+
+- Body: `{ "studentId": "12-34567-890", "password": string (1 to 200 chars) }`. The ID must match `NN-NNNNN-NNN`.
+- Success: `200 { "session": { "access_token", "refresh_token", "expires_in", "token_type" } }`; the frontend stores it with `supabase.auth.setSession`.
+- The backend looks up `profiles.student_number` with the service-role key, then signs in with Supabase Auth's normal
+  password sign-in. It never returns the email, gives the same answer for an unknown ID and a wrong password, and makes
+  every attempt take at least 0.7 s so timing does not reveal which IDs exist. Responses are `Cache-Control: no-store`.
+
+| Status | Code | When |
+| --- | --- | --- |
+| 400 | `INVALID_REQUEST` | ID not in `NN-NNNNN-NNN` format, or missing/too long password |
+| 401 | `INVALID_CREDENTIALS` | Unknown student ID or wrong password (one message for both) |
+| 429 | `RATE_LIMITED` | More than 10 attempts per device or 5 per student ID in 15 minutes (`Retry-After`), or Supabase's own limit |
+| 503 | `STUDENT_SIGN_IN_UNAVAILABLE` | `SUPABASE_SERVICE_ROLE_KEY` is not set (or is not a service-role key) |
+| 503 | `AUTH_UNAVAILABLE` | Supabase could not be reached |
+
 ## Ask the Help Desk
 
 `POST /api/ask`

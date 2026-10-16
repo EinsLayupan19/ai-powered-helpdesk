@@ -2,6 +2,14 @@
 
 Read top-to-bottom before starting a session. Add a new entry at the top after meaningful work.
 
+## 2026-10-16 — Sign in with a student ID or an @neu.edu.ph email
+
+- **Login page:** one field, "Student ID or university email" (placeholder `12-34567-890 or name@neu.edu.ph`). An ID in `NN-NNNNN-NNN` format goes to the new backend route; an `@neu.edu.ph` email signs in with Supabase Auth as before; anything else gets a message explaining both options. Forgot password needs the email (reset links are emailed).
+- **Backend:** `POST /api/auth/student-sign-in` (`backend/src/services/auth/`). Looks up `profiles.student_number` with `SUPABASE_SERVICE_ROLE_KEY` (backend only; one query plus `auth.admin.getUserById`, single attempt, 8 s timeout), then calls Supabase's normal password sign-in with the anon key and returns only the session. Unknown ID and wrong password give the same 401, every attempt takes at least 0.7 s, attempts are limited to 10 per device and 5 per student ID per 15 minutes, and responses are `no-store`. Without a real service-role key (checked with `isPrivilegedSupabaseKey`) the route answers 503 "Student ID sign-in isn't set up yet. Sign in with your university email." and a startup warning explains why (the key is never printed).
+- **Owner setup for student IDs:** add `SUPABASE_SERVICE_ROLE_KEY` in Render's Environment (not in `render.yaml`) and fill `profiles.student_number` per student. Note: every student ID sign-in reaches Supabase from the server's one IP, so Supabase's per-IP sign-in limit is shared by all student-ID logins; fine for a demo, worth revisiting at real scale.
+- **Verified:** backend 156/156 (new: 8 sign-in tests against a fake Supabase incl. key separation, same answer for unknown ID and wrong password, timing floor, rate limit/outage mapping, key check; 8 route tests incl. validation, no-store, per-ID and per-device limits); frontend typecheck and build; in a headless browser against the local server: label and placeholder, empty submit, Gmail address, malformed ID, student ID without the key (503 message), a made-up `@neu.edu.ph` email against the real Supabase project ("Incorrect email or password."), and forgot password with an ID. No JavaScript errors.
+- **Not verified:** a real student-ID sign-in end to end (needs the service-role key and a filled `student_number`, neither available here).
+
 ## 2026-10-16 — Local knowledge base connected (school questions answer again)
 
 - **Problem:** almost every school question answered "I don't have enough verified information to answer that accurately." Cause: since `4a0ef13`, school questions only use verified knowledge, but local mode knew only the 3BSIT-1 schedule, and the local `backend/.env` used `KNOWLEDGE_SOURCE=supabase`, whose `knowledge_entries` table holds only the two draft seed rows (RLS returns verified rows only). Before `4a0ef13`, every question went to Gemini unguided, which is why it seemed to work.
