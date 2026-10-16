@@ -5,13 +5,20 @@ import { createServer } from "node:http";
 import { after, beforeEach, test } from "node:test";
 
 const GOOD_TOKEN = "good-student-token";
-const USER = { id: "4f6b2c1e-8a3d-4b7e-9c21-5d0e7a9b3f10", aud: "authenticated", role: "authenticated", email: "student@test.local", app_metadata: {}, user_metadata: {}, created_at: "2026-10-01T00:00:00Z" };
+const USER = { id: "4f6b2c1e-8a3d-4b7e-9c21-5d0e7a9b3f10", aud: "authenticated", role: "authenticated", email: "student@neu.edu.ph", app_metadata: {}, user_metadata: {}, created_at: "2026-10-01T00:00:00Z" };
 
-// Fake Supabase Auth: GET /auth/v1/user accepts only GOOD_TOKEN.
+// Fake Supabase Auth: GET /auth/v1/user accepts GOOD_TOKEN, plus valid sessions of accounts outside NEU.
+const OUTSIDERS = {
+  "gmail-token": { ...USER, id: "0b6c8f0e-1d2a-4c3b-9e8f-7a6b5c4d3e2f", email: "someone@gmail.com" },
+  "lookalike-token": { ...USER, id: "1c7d9a1f-2e3b-4d4c-8f9a-8b7c6d5e4f3a", email: "x@neu.edu.ph.evil.com" },
+  "no-email-token": { ...USER, id: "2d8eab20-3f4c-4e5d-9a0b-9c8d7e6f5a4b", email: undefined },
+};
+const TOKENS = { [GOOD_TOKEN]: USER, "upper-token": { ...USER, email: "Student@NEU.EDU.PH" }, ...OUTSIDERS };
 const authServer = createServer((req, res) => {
-  const ok = req.url?.startsWith("/auth/v1/user") && req.headers.authorization === `Bearer ${GOOD_TOKEN}`;
-  res.writeHead(ok ? 200 : 401, { "content-type": "application/json" });
-  res.end(JSON.stringify(ok ? USER : { code: 401, error_code: "bad_jwt", msg: "invalid JWT" }));
+  const token = /^Bearer (.+)$/.exec(req.headers.authorization ?? "")?.[1];
+  const user = req.url?.startsWith("/auth/v1/user") ? TOKENS[token] : undefined;
+  res.writeHead(user ? 200 : 401, { "content-type": "application/json" });
+  res.end(JSON.stringify(user ?? { code: 401, error_code: "bad_jwt", msg: "invalid JWT" }));
 });
 await new Promise((resolve) => authServer.listen(0, "127.0.0.1", resolve));
 
@@ -182,4 +189,15 @@ test("health and unknown routes are unchanged", async () => {
   assert.deepEqual(await missing.json(), { error: { code: "NOT_FOUND", message: "Not found." } });
   const me = await fetch(`${base}/api/me`, { headers: { authorization: `Bearer ${GOOD_TOKEN}` } });
   assert.deepEqual(await me.json(), { id: USER.id, email: USER.email });
+});
+
+test("only New Era University accounts (@neu.edu.ph) can use the API", async () => {
+  const NOT_NEU = { error: { code: "NOT_NEU_ACCOUNT", message: "Only New Era University accounts (@neu.edu.ph) can use EagleDesk." } };
+  for (const token of Object.keys(OUTSIDERS)) {
+    assert.deepEqual(await ask({ message: "What is HTML?" }, token), { status: 403, body: NOT_NEU }, token);
+    const me = await fetch(`${base}/api/me`, { headers: { authorization: `Bearer ${token}` } });
+    assert.equal(me.status, 403, token);
+  }
+  assert.equal(aiCalls.length, 0);
+  assert.equal((await ask({ message: "What is HTML?" }, "upper-token")).status, 200, "the domain check ignores letter case");
 });

@@ -3,7 +3,7 @@ import cors from "cors";
 import { join, sep } from "node:path";
 import type { AuthedRequest } from "./middleware/auth.js";
 import type { AIService, ConversationTurn } from "./services/ai/AIService.js";
-import { STUDENT_ID_PATTERN, type StudentSignIn } from "./services/auth/studentSignIn.js";
+import { STUDENT_ID_PATTERN, type StudentPasswordReset, type StudentSignIn } from "./services/auth/studentSignIn.js";
 import { requiresVerifiedKnowledge, scheduleSections } from "./services/knowledge/LocalKnowledgeService.js";
 import { KnowledgeUnavailableError } from "./services/knowledge/SupabaseKnowledgeService.js";
 import type { KnowledgeResult, KnowledgeService, ScheduleEntry } from "./services/knowledge/types.js";
@@ -19,7 +19,9 @@ export type AppDeps = {
   askRateLimit?: { limit: number; windowMs: number };
   /** Student ID sign-in (needs the service-role key on the server). null turns it off with a clear message. */
   studentSignIn?: StudentSignIn | null;
-  /** Limits on /api/auth/student-sign-in. Defaults to 10 per device and 5 per student ID per 15 minutes. */
+  /** Forgot password by student ID (same requirement). */
+  studentReset?: StudentPasswordReset | null;
+  /** Limits on /api/auth/student-sign-in and, counted separately, /api/auth/student-reset. Defaults to 10 per device and 5 per student ID per 15 minutes. */
   signInRateLimit?: { perIp: number; perStudentId: number; windowMs: number };
 };
 
@@ -61,7 +63,9 @@ function perUserLimit({ limit, windowMs }: { limit: number; windowMs: number }):
 }
 
 const SIGN_IN_INVALID_REQUEST = { error: { code: "INVALID_REQUEST", message: "Enter your student ID (for example 12-34567-890) and your password." } };
-const SIGN_IN_OFF = { error: { code: "STUDENT_SIGN_IN_UNAVAILABLE", message: "Student ID sign-in isn't set up yet. Sign in with your university email." } };
+const SIGN_IN_OFF = { error: { code: "STUDENT_SIGN_IN_UNAVAILABLE", message: "Student ID sign-in isn't set up yet. Use Continue with Google with your @neu.edu.ph account." } };
+const RESET_INVALID_REQUEST = { error: { code: "INVALID_REQUEST", message: "Enter your student ID (for example 12-34567-890), then choose Forgot password." } };
+const RESET_SENT = { ok: true, message: "If that student ID has an account, a password reset link is on its way to its university email." };
 const SIGN_IN_LIMITED = { error: { code: "RATE_LIMITED", message: "Too many sign-in attempts. Please wait a few minutes and try again." } };
 const SIGN_IN_WRONG = { error: { code: "INVALID_CREDENTIALS", message: "Incorrect student ID or password." } };
 const SIGN_IN_DOWN = { error: { code: "AUTH_UNAVAILABLE", message: "Could not reach the sign-in service. Try again." } };
@@ -74,7 +78,7 @@ const sectionRange = scheduleSections.length > 1 ? `${scheduleSections[0]} to ${
 const ASK_SECTION = `Which section are you in? I have the class schedules for ${sectionRange}, so ask for example "schedule for ${scheduleSections[0]}". ${AUTOMATE_HINT}`;
 
 /** Builds the Express app without listening, so HTTP behavior can be tested with injected dependencies. */
-export function createApp({ frontendOrigin, requireAuth, knowledgeService, getAIService, staticDir, askRateLimit, studentSignIn = null, signInRateLimit }: AppDeps): express.Express {
+export function createApp({ frontendOrigin, requireAuth, knowledgeService, getAIService, staticDir, askRateLimit, studentSignIn = null, studentReset = null, signInRateLimit }: AppDeps): express.Express {
   const app = express();
   app.disable("x-powered-by");
   app.set("trust proxy", 1); // hosting platforms put one HTTPS proxy in front of the app
@@ -116,6 +120,26 @@ export function createApp({ frontendOrigin, requireAuth, knowledgeService, getAI
     const result = await studentSignIn(id, password);
     if (result.ok) return res.json({ session: result.session });
     if (result.reason === "invalid") return res.status(401).json(SIGN_IN_WRONG);
+    if (result.reason === "rate_limited") return res.status(429).json(SIGN_IN_LIMITED);
+    return res.status(503).json(SIGN_IN_DOWN);
+  });
+
+  // Forgot password by student ID: the link goes to the account's university email, which is never shown.
+  const resetByIp = slidingWindow(signInLimits.perIp, signInLimits.windowMs);
+  const resetById = slidingWindow(signInLimits.perStudentId, signInLimits.windowMs);
+  app.post("/api/auth/student-reset", async (req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    const { studentId } = (req.body && typeof req.body === "object" ? req.body : {}) as { studentId?: unknown };
+    const id = typeof studentId === "string" ? studentId.trim() : "";
+    if (!STUDENT_ID_PATTERN.test(id)) return res.status(400).json(RESET_INVALID_REQUEST);
+    if (!studentReset) return res.status(503).json(SIGN_IN_OFF);
+    const retryAfter = resetByIp.hit(req.ip ?? "unknown") ?? resetById.hit(id);
+    if (retryAfter !== null) {
+      res.setHeader("Retry-After", String(retryAfter));
+      return res.status(429).json(SIGN_IN_LIMITED);
+    }
+    const result = await studentReset(id);
+    if (result.ok) return res.json(RESET_SENT);
     if (result.reason === "rate_limited") return res.status(429).json(SIGN_IN_LIMITED);
     return res.status(503).json(SIGN_IN_DOWN);
   });

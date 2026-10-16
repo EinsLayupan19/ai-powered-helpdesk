@@ -13,7 +13,7 @@ const authServer = createServer((req, res) => {
   const token = /^Bearer (.+)$/.exec(req.headers.authorization ?? "")?.[1];
   const id = req.url?.startsWith("/auth/v1/user") ? TOKENS[token] : undefined;
   res.writeHead(id ? 200 : 401, { "content-type": "application/json" });
-  res.end(JSON.stringify(id ? { id, aud: "authenticated", role: "authenticated", email: `${id}@test.local`, app_metadata: {}, user_metadata: {}, created_at: "2026-10-01T00:00:00Z" } : { code: 401, msg: "invalid JWT" }));
+  res.end(JSON.stringify(id ? { id, aud: "authenticated", role: "authenticated", email: `${id}@neu.edu.ph`, app_metadata: {}, user_metadata: {}, created_at: "2026-10-01T00:00:00Z" } : { code: 401, msg: "invalid JWT" }));
 });
 await new Promise((resolve) => authServer.listen(0, "127.0.0.1", resolve));
 process.env.SUPABASE_URL = `http://127.0.0.1:${authServer.address().port}`;

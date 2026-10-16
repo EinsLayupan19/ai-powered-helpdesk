@@ -23,6 +23,7 @@ const app = createApp({
   getAIService,
   staticDir,
   studentSignIn: studentSignIn.signIn,
+  studentReset: studentSignIn.reset,
 });
 
 app.listen(config.port, () => {
