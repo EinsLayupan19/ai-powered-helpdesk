@@ -55,6 +55,26 @@ export function useAuth() {
     }
   }, []);
 
+  /** Student ID sign-in: the backend finds the account and returns a session, which is stored like any other. */
+  const signInWithStudentId = useCallback(async (studentId: string, password: string) => {
+    if (!supabase) return NOT_CONFIGURED;
+    try {
+      const response = await fetch("/api/auth/student-sign-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId: studentId.trim(), password }),
+      });
+      const payload = await response.json().catch(() => null) as { session?: { access_token?: unknown; refresh_token?: unknown }; error?: { message?: unknown } } | null;
+      if (!response.ok) return typeof payload?.error?.message === "string" ? payload.error.message : "Sign-in failed. Please try again.";
+      const access_token = payload?.session?.access_token, refresh_token = payload?.session?.refresh_token;
+      if (typeof access_token !== "string" || typeof refresh_token !== "string") return "Sign-in failed. Please try again.";
+      const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+      return error ? friendly(error) : null;
+    } catch (error: unknown) {
+      return friendly(error);
+    }
+  }, []);
+
   const sendResetEmail = useCallback(async (email: string) => {
     if (!supabase) return NOT_CONFIGURED;
     try {
@@ -92,5 +112,5 @@ export function useAuth() {
     }
   }, []);
 
-  return { configured: authConfigured, loading, session, recovery, sessionError, signIn, sendResetEmail, setNewPassword, signOut };
+  return { configured: authConfigured, loading, session, recovery, sessionError, signIn, signInWithStudentId, sendResetEmail, setNewPassword, signOut };
 }
