@@ -2,7 +2,8 @@ import type { NextFunction, Request, Response } from "express";
 import { createClient, type User } from "@supabase/supabase-js";
 import { config } from "../config.js";
 
-export type AuthedRequest = Request & { user: User };
+/** accessToken is the bearer token that Supabase Auth has just verified for this request. */
+export type AuthedRequest = Request & { user: User; accessToken: string };
 
 const client = config.supabaseUrl && config.supabaseAnonKey
   ? createClient(config.supabaseUrl, config.supabaseAnonKey, { auth: { persistSession: false, autoRefreshToken: false } })
@@ -28,6 +29,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
         : fail(res, 401, "UNAUTHENTICATED", "Your session is invalid or has expired.");
     }
     (req as AuthedRequest).user = data.user;
+    (req as AuthedRequest).accessToken = token;
     next();
   } catch {
     fail(res, 503, "AUTH_UNAVAILABLE", "Could not verify your session. Try again.");

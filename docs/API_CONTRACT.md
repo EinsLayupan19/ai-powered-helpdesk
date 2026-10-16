@@ -11,6 +11,30 @@ Authentication:
 
 `POST /api/ask`
 
+### Implemented today (2026-10-16)
+
+The running backend (`backend/src/app.ts`) accepts a smaller request than the planned design below:
+
+- Header: `Authorization: Bearer <Supabase access token>` (verified with Supabase Auth on every request).
+- Body: `{ "message": string (1 to 4,000 chars), "history"?: [{ "role": "user" | "assistant", "content": string }] (max 6) }`. The frontend sends only `message`.
+- Success: `{ "answer": string, "sources": [{ "id", "title", "category" }], "schedule"?: {...} }`.
+- Errors are `{ "error": { "code", "message" } }`:
+
+| Status | Code | When |
+| --- | --- | --- |
+| 400 | `INVALID_REQUEST` | Missing/empty/too long message, bad history, invalid JSON |
+| 413 | `INVALID_REQUEST` | Request body over 100 KB |
+| 401 | `UNAUTHENTICATED` | No token, or an invalid/expired one |
+| 429 | `RATE_LIMITED` | More than 30 questions in 10 minutes from one student (`Retry-After` header in seconds) |
+| 429 | `AI_RATE_LIMITED` | Gemini's own quota is exhausted |
+| 503 | `AUTH_NOT_CONFIGURED` / `AUTH_UNAVAILABLE` | Supabase Auth not configured or unreachable |
+| 503 | `KNOWLEDGE_UNAVAILABLE` | School question while knowledge retrieval failed |
+| 503 | `AI_NOT_CONFIGURED` | No `GEMINI_API_KEY` on the server |
+| 504 | `AI_TIMEOUT` | Gemini did not answer within 20 seconds (one retry included) |
+| 502 | `AI_UNAVAILABLE` | Any other Gemini failure (details are never forwarded) |
+
+### Planned design
+
 Request:
 
 ```json

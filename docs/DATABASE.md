@@ -1,12 +1,18 @@
 # Database Design
 
+## Implementation status
+
+This file describes the intended design, not the current live schema or application behavior. The repository has no applied database migration and the confirmed Supabase `public` schema is empty. Conversations and messages, calendar entries, schoolwork, and notifications remain browser-local; knowledge retrieval remains in backend code. See [DATABASE_IMPLEMENTATION_PLAN.md](DATABASE_IMPLEMENTATION_PLAN.md) for the proposed four-table foundation. Do not treat a migration file as applied until it has been reviewed and deliberately run.
+
 ## Database
 
 Use **Supabase PostgreSQL**.
 
 The MVP does not require pgvector or a vector database. Knowledge retrieval starts with normal PostgreSQL filtering/search.
 
-## Core Tables
+## Longer-term table design
+
+The following is a broader target design. Only `profiles`, `knowledge_articles`, `conversations`, and `messages` are included in the initial migration proposal; the remaining tables are future scope.
 
 ```text
 profiles

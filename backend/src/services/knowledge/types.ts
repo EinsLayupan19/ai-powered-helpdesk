@@ -31,7 +31,10 @@ export type KnowledgeResult = {
   relevance: number;
 };
 
+/** Per-request context. accessToken is the caller's already-verified Supabase JWT. */
+export type SearchContext = { accessToken?: string };
+
 export interface KnowledgeService {
-  search(query: string): Promise<KnowledgeResult[]>;
+  search(query: string, context?: SearchContext): Promise<KnowledgeResult[]>;
   findSchedule(query: string): Promise<ScheduleMatch | null>;
 }
