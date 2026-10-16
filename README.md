@@ -27,7 +27,7 @@ The project is being developed as an academic project for **New Era University**
 | Sign-in | Supabase Auth (email and password; accounts are created in the Supabase dashboard, there is no sign-up screen) |
 | Backend | Node.js 22.12+, Express 4, TypeScript |
 | AI | Google Gemini through the backend only (`@google/genai`, default model `gemini-3.5-flash-lite`) |
-| Knowledge | Verified school knowledge searched by the backend: a local corpus (default) or the Supabase `knowledge_entries` table (`KNOWLEDGE_SOURCE=supabase`) |
+| Knowledge | Verified school knowledge searched by the backend: by default the entries in `backend/src/services/knowledge/corpus.ts` (copied from `docs/KNOWLEDGE_BASE.md`) plus the 3BSIT-1 to 3BSIT-6 schedules, or the Supabase `knowledge_entries` table (`KNOWLEDGE_SOURCE=supabase`, only rows marked `verified`) |
 | Database | Supabase PostgreSQL migrations in `supabase/migrations/`. Chats, calendar and schoolwork are still stored per user in the browser (localStorage). |
 | Tests | Node's built-in test runner (`npm test` in `backend/`) |
 
@@ -158,7 +158,8 @@ Development documentation is maintained in the `docs/` directory, while project 
 - [x] Backend API (Express)
 - [x] Authentication (Supabase Auth, verified on every API request)
 - [ ] Database integration (migrations written; chats and schedules still live in the browser)
-- [ ] Improved knowledge retrieval (Supabase retrieval built, off by default; no verified entries yet)
+- [x] Knowledge retrieval from the verified knowledge base (local mode, keyword ranking)
+- [ ] Supabase knowledge retrieval in use (built; the table has no verified entries yet)
 - [x] Automated backend tests
 - [ ] Deployment (configuration ready in `render.yaml`; not deployed yet)
 

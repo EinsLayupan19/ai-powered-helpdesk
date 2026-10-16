@@ -3,7 +3,7 @@ import cors from "cors";
 import { join, sep } from "node:path";
 import type { AuthedRequest } from "./middleware/auth.js";
 import type { AIService, ConversationTurn } from "./services/ai/AIService.js";
-import { requiresVerifiedKnowledge } from "./services/knowledge/LocalKnowledgeService.js";
+import { requiresVerifiedKnowledge, scheduleSections } from "./services/knowledge/LocalKnowledgeService.js";
 import { KnowledgeUnavailableError } from "./services/knowledge/SupabaseKnowledgeService.js";
 import type { KnowledgeResult, KnowledgeService, ScheduleEntry } from "./services/knowledge/types.js";
 
@@ -40,6 +40,11 @@ function perUserLimit({ limit, windowMs }: { limit: number; windowMs: number }):
 }
 
 const NOT_ENOUGH_INFO = "I don't have enough verified information to answer that accurately.";
+// From docs/KNOWLEDGE_BASE.md: schedules are checked in Automate (section 1), and the section is asked for when
+// it is not known (section 14, schedule-answer rule 1).
+const AUTOMATE_HINT = "You can check your class schedule through Automate while at school.";
+const sectionRange = scheduleSections.length > 1 ? `${scheduleSections[0]} to ${scheduleSections[scheduleSections.length - 1]}` : scheduleSections[0];
+const ASK_SECTION = `Which section are you in? I have the class schedules for ${sectionRange}, so ask for example "schedule for ${scheduleSections[0]}". ${AUTOMATE_HINT}`;
 
 /** Builds the Express app without listening, so HTTP behavior can be tested with injected dependencies. */
 export function createApp({ frontendOrigin, requireAuth, knowledgeService, getAIService, staticDir, askRateLimit }: AppDeps): express.Express {
@@ -90,9 +95,8 @@ export function createApp({ frontendOrigin, requireAuth, knowledgeService, getAI
 
     const scheduleMatch = await knowledgeService.findSchedule(message.trim());
     if (scheduleMatch) {
-      if (!scheduleMatch.section || !scheduleMatch.entries.length) {
-        return res.json({ answer: NOT_ENOUGH_INFO, sources: [] });
-      }
+      if (!scheduleMatch.section) return res.json({ answer: ASK_SECTION, sources: [] });
+      if (!scheduleMatch.entries.length) return res.json({ answer: `${NOT_ENOUGH_INFO} ${AUTOMATE_HINT}`, sources: [] });
 
       const schedule = {
         request: scheduleMatch.request,
@@ -102,7 +106,8 @@ export function createApp({ frontendOrigin, requireAuth, knowledgeService, getAI
       const answer = schedule.request === "full"
         ? `Here is the schedule for ${schedule.section}.`
         : formatScheduleEntry(schedule.entries[0]);
-      return res.json({ answer, sources: [scheduleSource], schedule });
+      const source = { id: `schedule-${schedule.section.toLowerCase()}`, title: `${schedule.section} Class Schedule`, category: "Class Schedule" };
+      return res.json({ answer, sources: [source], schedule });
     }
 
     // Empty results and retrieval failures are different outcomes: no match falls through to the
@@ -181,8 +186,6 @@ export function createApp({ frontendOrigin, requireAuth, knowledgeService, getAI
   return app;
 }
 
-const scheduleSource = { id: "schedule-3bsit-1", title: "3BSIT-1 Class Schedule", category: "Class Schedule" };
-
 function formatScheduleEntry(entry: ScheduleEntry): string {
-  return `${entry.courseCode} — ${entry.courseName}\n${entry.day}\n${entry.startTime} – ${entry.endTime}\nRoom ${entry.room}`;
+  return `${entry.courseCode} — ${entry.courseName}\n${entry.day}\n${entry.startTime} – ${entry.endTime}\n${entry.room ? `Room ${entry.room}` : "Room not listed in the source"}`;
 }

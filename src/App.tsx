@@ -109,7 +109,7 @@ function Chat({conversation,onSend,onAction,sending,historyOpen,onOpenHistory,on
           {m.from==="ai"&&<AiAvatar/>}
           <div>
             {m.from==="ai"?<div className="message-meta"><span className="message-name">EagleDesk</span>{time&&<time className="message-time" dateTime={m.createdAt}>{time}</time>}</div>:<span className="message-name">You</span>}
-            {m.schedule?<div className="bubble schedule-results">{m.schedule.request==="full"&&<p>{m.text}</p>}{m.schedule.entries.map(entry=><div className="schedule-entry" key={`${entry.section}-${entry.courseCode}`}><strong>{entry.day}</strong><div><span className="course-code">{entry.courseCode}</span>{entry.courseName}</div><div className="tabular">{entry.startTime} - {entry.endTime}</div><div>Room {entry.room}</div></div>)}</div>
+            {m.schedule?<div className="bubble schedule-results">{m.schedule.request==="full"&&<p>{m.text}</p>}{m.schedule.entries.map(entry=><div className="schedule-entry" key={`${entry.section}-${entry.courseCode}`}><strong>{entry.day}</strong><div><span className="course-code">{entry.courseCode}</span>{entry.courseName}</div><div className="tabular">{entry.startTime} - {entry.endTime}</div><div>{entry.room?`Room ${entry.room}`:"Room not listed"}</div></div>)}</div>
               :m.from==="ai"?<div className="bubble formatted"><FormattedText text={m.text}/></div>:<div className="bubble">{m.text}</div>}
             {m.from==="user"&&time&&<time className="message-time" dateTime={m.createdAt}>{time}</time>}
             {m.from==="ai"&&m.sources&&m.sources.length>0&&<div className="sources"><span>Sources</span><ul>{m.sources.map(s=><li key={s.id}>{s.title}</li>)}</ul></div>}
