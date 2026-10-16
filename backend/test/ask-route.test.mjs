@@ -69,7 +69,30 @@ test("schedule questions still use schedule matching and skip knowledge search a
   assert.equal(body.schedule.entries.length, 6);
   assert.equal(searchCalls.length, 0);
   assert.equal(aiCalls.length, 0);
-  assert.deepEqual(await ask({ message: "What is the schedule of 3BSIT-2?" }), { status: 200, body: { answer: FALLBACK, sources: [] } });
+  const second = await ask({ message: "What is the schedule of 3BSIT-2?" });
+  assert.equal(second.body.answer, "Here is the schedule for 3BSIT-2.");
+  assert.deepEqual(second.body.sources, [{ id: "schedule-3bsit-2", title: "3BSIT-2 Class Schedule", category: "Class Schedule" }]);
+  assert.ok(second.body.schedule.entries.every((e) => e.section === "3BSIT-2"));
+});
+
+test("a schedule question without a section asks for the section and points to Automate", async () => {
+  const { status, body } = await ask({ message: "What is my class schedule?" });
+  assert.equal(status, 200);
+  assert.equal(body.answer, 'Which section are you in? I have the class schedules for 3BSIT-1 to 3BSIT-6, so ask for example "schedule for 3BSIT-1". You can check your class schedule through Automate while at school.');
+  assert.deepEqual(body.sources, []);
+  assert.equal(aiCalls.length, 0);
+});
+
+test("a section or course that is not in the knowledge base gets the exact fallback plus the Automate hint", async () => {
+  const hint = `${FALLBACK} You can check your class schedule through Automate while at school.`;
+  assert.deepEqual(await ask({ message: "What is the schedule of 3BSIT-7?" }), { status: 200, body: { answer: hint, sources: [] } });
+  assert.deepEqual(await ask({ message: "What time is ITL999-18 for 3BSIT-1?" }), { status: 200, body: { answer: hint, sources: [] } });
+  assert.equal(aiCalls.length, 0);
+});
+
+test("a single-course answer says when the source lists no room", async () => {
+  const { body } = await ask({ message: "What time is ITL314-18 for 3BSIT-5?" });
+  assert.equal(body.answer, "ITL314-18 — System Analysis and Design (Lab)\nWednesday\n10:00 AM – 1:00 PM\nRoom not listed in the source");
 });
 
 test("matched knowledge goes to Gemini as context and comes back as sources (contract unchanged)", async () => {
@@ -126,10 +149,16 @@ test("unexpected knowledge errors are a generic 500 that leaks nothing", async (
   assert.deepEqual(logged, ["[ask] unexpected knowledge service failure"]);
 });
 
-test("local mode behaves exactly as before for ID and general questions", async () => {
+test("local mode answers school questions from the knowledge base and general ones without it", async () => {
   searchImpl = (query, context) => local.search(query, context);
-  assert.deepEqual(await ask({ message: "How can I get a replacement school ID?" }), { status: 200, body: { answer: FALLBACK, sources: [] } });
+  const id = await ask({ message: "How can I get a replacement school ID?" });
+  assert.equal(id.status, 200);
+  assert.equal(id.body.answer, "AI answer");
+  assert.ok(id.body.sources.some((s) => s.id === "lost-student-id"), JSON.stringify(id.body.sources));
+  assert.ok(aiCalls[0].verifiedContext.some((d) => d.id === "lost-student-id"));
   assert.deepEqual(await ask({ message: "What is HTML?" }), { status: 200, body: { answer: "AI answer", sources: [] } });
+  const unknown = await ask({ message: "Who is the university president's secretary?" });
+  assert.deepEqual(unknown, { status: 200, body: { answer: FALLBACK, sources: [] } });
 });
 
 test("AI not configured is still a 503 AI_NOT_CONFIGURED", async () => {
