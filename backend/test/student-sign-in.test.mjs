@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { after, before, beforeEach, test } from "node:test";
-import { STUDENT_ID_PATTERN, createStudentSignIn } from "../dist/services/auth/studentSignIn.js";
+import { STUDENT_ID_PATTERN, createStudentPasswordReset, createStudentSignIn } from "../dist/services/auth/studentSignIn.js";
 import { buildStudentSignIn } from "../dist/services/auth/index.js";
 
 const ANON = "sb_publishable_student-test";
@@ -26,7 +26,8 @@ const server = createServer(async (req, res) => {
     const wanted = new URL(req.url, "http://x").searchParams.get("student_number");
     return json(res, 200, wanted === `eq.${STUDENT_ID}` && behavior.registered ? [{ id: USER_ID }] : []);
   }
-  if (req.url === `/auth/v1/admin/users/${USER_ID}`) return json(res, 200, { id: USER_ID, aud: "authenticated", email: EMAIL, app_metadata: {}, user_metadata: {}, created_at: "2026-10-01T00:00:00Z" });
+  if (req.url.startsWith("/auth/v1/recover")) return behavior.recoverStatus === 429 ? json(res, 429, { code: 429, error_code: "over_email_send_rate_limit", msg: "Email rate limit exceeded" }) : json(res, 200, {});
+  if (req.url === `/auth/v1/admin/users/${USER_ID}`) return json(res, 200, { id: USER_ID, aud: "authenticated", email: behavior.email ?? EMAIL, app_metadata: {}, user_metadata: {}, created_at: "2026-10-01T00:00:00Z" });
   if (req.url.startsWith("/auth/v1/token?grant_type=password")) {
     if (behavior.tokenStatus === 429) return json(res, 429, { code: 429, error_code: "over_request_rate_limit", msg: "Request rate limit reached" });
     const { email, password } = JSON.parse(body);
@@ -40,7 +41,7 @@ const server = createServer(async (req, res) => {
 let url;
 before(async () => { await new Promise((r) => server.listen(0, "127.0.0.1", r)); url = `http://127.0.0.1:${server.address().port}`; });
 after(() => server.close());
-beforeEach(() => { requests = []; behavior = { registered: true, down: false, tokenStatus: 200 }; });
+beforeEach(() => { requests = []; behavior = { registered: true, down: false, tokenStatus: 200, recoverStatus: 200, email: undefined }; });
 
 const signIn = (options = {}) => createStudentSignIn({ url, anonKey: ANON, serviceRoleKey: SERVICE, minDurationMs: 0, ...options });
 
@@ -114,4 +115,48 @@ test("student ID sign-in is only switched on with a real service-role key", () =
   assert.equal(typeof on.signIn, "function");
   assert.equal(on.warning, null);
   assert.ok(!JSON.stringify(publicKey.warning).includes(ANON), "the warning never prints the key");
+});
+
+test("a student ID linked to a non-NEU email cannot sign in", async () => {
+  behavior.email = "someone@gmail.com";
+  assert.deepEqual(await signIn()(STUDENT_ID, PASSWORD), { ok: false, reason: "invalid" });
+  assert.equal(requests.filter((r) => r.url.startsWith("/auth/v1/token")).length, 0);
+});
+
+const reset = (options = {}) => createStudentPasswordReset({ url, anonKey: ANON, serviceRoleKey: SERVICE, minDurationMs: 0, ...options });
+
+test("password reset by student ID asks Supabase to email the account's university address", async () => {
+  assert.deepEqual(await reset()(STUDENT_ID), { ok: true });
+  const recover = requests.filter((r) => r.url.startsWith("/auth/v1/recover"));
+  assert.equal(recover.length, 1);
+  assert.equal(JSON.parse(recover[0].body).email, EMAIL);
+  assert.equal(recover[0].headers.apikey, ANON);
+});
+
+test("password reset gives the same answer for unknown IDs and non-NEU accounts, and sends nothing", async () => {
+  behavior.registered = false;
+  assert.deepEqual(await reset()(STUDENT_ID), { ok: true });
+  behavior.registered = true;
+  behavior.email = "someone@gmail.com";
+  assert.deepEqual(await reset()(STUDENT_ID), { ok: true });
+  assert.equal(requests.filter((r) => r.url.startsWith("/auth/v1/recover")).length, 0);
+});
+
+test("password reset reports Supabase rate limits and outages, and takes at least the minimum time", async () => {
+  behavior.recoverStatus = 429;
+  assert.deepEqual(await reset()(STUDENT_ID), { ok: false, reason: "rate_limited" });
+  behavior.recoverStatus = 200;
+  behavior.down = true;
+  assert.deepEqual(await reset({ timeoutMs: 1000 })(STUDENT_ID), { ok: false, reason: "unavailable" });
+  behavior.down = false;
+  behavior.registered = false;
+  const t = Date.now();
+  await reset({ minDurationMs: 250 })(STUDENT_ID);
+  assert.ok(Date.now() - t >= 245);
+});
+
+test("the reset function is switched on and off together with student ID sign-in", () => {
+  const base = { supabaseUrl: "https://x.supabase.co", supabaseAnonKey: ANON };
+  assert.equal(buildStudentSignIn({ ...base, supabaseServiceRoleKey: undefined }).reset, null);
+  assert.equal(typeof buildStudentSignIn({ ...base, supabaseServiceRoleKey: SERVICE }).reset, "function");
 });

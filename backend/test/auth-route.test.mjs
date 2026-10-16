@@ -9,8 +9,9 @@ process.env.KNOWLEDGE_SOURCE = "local";
 const { createApp } = await import("../dist/app.js");
 
 const SESSION = { access_token: "access.jwt", refresh_token: "refresh-token", expires_in: 3600, token_type: "bearer" };
-let calls, outcome;
+let calls, outcome, resets, resetOutcome;
 const studentSignIn = async (studentId, password) => { calls.push({ studentId, password }); return outcome; };
+const studentReset = async (studentId) => { resets.push(studentId); return resetOutcome; };
 const deps = { frontendOrigin: "http://localhost:5173", requireAuth: (_q, _s, next) => next(), knowledgeService: { findSchedule: async () => null, search: async () => [] }, getAIService: () => null };
 
 async function listen(app) {
@@ -18,10 +19,10 @@ async function listen(app) {
   await new Promise((r) => server.once("listening", r));
   return { server, base: `http://127.0.0.1:${server.address().port}` };
 }
-const on = await listen(createApp({ ...deps, studentSignIn, signInRateLimit: { perIp: 4, perStudentId: 3, windowMs: 60_000 } }));
-const off = await listen(createApp({ ...deps, studentSignIn: null }));
+const on = await listen(createApp({ ...deps, studentSignIn, studentReset, signInRateLimit: { perIp: 4, perStudentId: 3, windowMs: 60_000 } }));
+const off = await listen(createApp({ ...deps, studentSignIn: null, studentReset: null }));
 after(() => { on.server.close(); off.server.close(); });
-beforeEach(() => { calls = []; outcome = { ok: true, session: SESSION }; });
+beforeEach(() => { calls = []; outcome = { ok: true, session: SESSION }; resets = []; resetOutcome = { ok: true }; });
 
 let ipCounter = 0;
 const post = (target, body, ip = `10.9.0.${++ipCounter}`) =>
@@ -65,9 +66,9 @@ test("Supabase rate limits and outages have their own messages", async () => {
   assert.deepEqual({ status: down.status, body: down.body }, { status: 503, body: { error: { code: "AUTH_UNAVAILABLE", message: "Could not reach the sign-in service. Try again." } } });
 });
 
-test("without the service-role key, student ID sign-in says to use the university email", async () => {
+test("without the service-role key, student ID sign-in points to Continue with Google", async () => {
   const r = await post(off, { studentId: "12-34567-890", password: "x" });
-  assert.deepEqual({ status: r.status, body: r.body }, { status: 503, body: { error: { code: "STUDENT_SIGN_IN_UNAVAILABLE", message: "Student ID sign-in isn't set up yet. Sign in with your university email." } } });
+  assert.deepEqual({ status: r.status, body: r.body }, { status: 503, body: { error: { code: "STUDENT_SIGN_IN_UNAVAILABLE", message: "Student ID sign-in isn't set up yet. Use Continue with Google with your @neu.edu.ph account." } } });
 });
 
 test("attempts are limited per student ID, even from different devices", async () => {
@@ -88,4 +89,37 @@ test("attempts are limited per device across different student IDs, with Retry-A
   const limited = results[4];
   assert.ok(Number(limited.headers.get("retry-after")) > 0);
   assert.deepEqual(limited.body, { error: { code: "RATE_LIMITED", message: "Too many sign-in attempts. Please wait a few minutes and try again." } });
+});
+
+const postReset = (target, body, ip = `10.7.0.${++ipCounter}`) =>
+  fetch(`${target.base}/api/auth/student-reset`, { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": ip }, body: JSON.stringify(body) })
+    .then(async (r) => ({ status: r.status, headers: r.headers, body: await r.json() }));
+const SENT = { ok: true, message: "If that student ID has an account, a password reset link is on its way to its university email." };
+
+test("forgot password by student ID always gives the same answer and is never cached", async () => {
+  const r = await postReset(on, { studentId: " 44-44444-444 " });
+  assert.deepEqual({ status: r.status, body: r.body }, { status: 200, body: SENT });
+  assert.equal(r.headers.get("cache-control"), "no-store");
+  assert.deepEqual(resets, ["44-44444-444"]);
+});
+
+test("forgot password rejects a badly formatted ID, and says when it is not set up", async () => {
+  assert.equal((await postReset(on, { studentId: "4444444444" })).status, 400);
+  assert.equal(resets.length, 0);
+  const r = await postReset(off, { studentId: "44-44444-444" });
+  assert.equal(r.status, 503);
+  assert.equal(r.body.error.code, "STUDENT_SIGN_IN_UNAVAILABLE");
+});
+
+test("forgot password reports rate limits and outages", async () => {
+  resetOutcome = { ok: false, reason: "rate_limited" };
+  assert.equal((await postReset(on, { studentId: "55-55555-555" })).status, 429);
+  resetOutcome = { ok: false, reason: "unavailable" };
+  assert.equal((await postReset(on, { studentId: "56-55555-555" })).status, 503);
+});
+
+test("forgot password is limited per student ID", async () => {
+  const statuses = [];
+  for (let i = 0; i < 4; i++) statuses.push((await postReset(on, { studentId: "66-66666-666" })).status);
+  assert.deepEqual(statuses, [200, 200, 200, 429]);
 });
