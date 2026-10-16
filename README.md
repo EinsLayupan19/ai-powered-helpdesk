@@ -102,13 +102,27 @@ relative `/api/ask` calls work with no CORS setup. `render.yaml` describes this 
 4. After the first deploy, in Supabase go to **Authentication > URL Configuration**: set **Site URL** to your Render
    address (for example `https://eagledesk.onrender.com`) and add the same address under **Redirect URLs**. Without
    this, password-reset emails link back to localhost.
-5. Create a student account in Supabase (**Authentication > Users > Add user**, with an `@neu.edu.ph` email) to sign in.
-6. Optional, to let students sign in with their student ID (for example `12-34567-890`) as well as their email:
-   - In Render, add `SUPABASE_SERVICE_ROLE_KEY` under **Environment** (Supabase: **Project Settings > API keys**, the secret
-     / service_role key). It stays on the server and is never sent to the browser.
-   - In Supabase **Table Editor > profiles**, fill in `student_number` for each student, in exactly that format. A profile
-     row is created automatically when the user is created.
-   - Without the key, entering a student ID tells the student to use their university email instead.
+5. **Sign-in.** EagleDesk accepts New Era University accounts only (`@neu.edu.ph`); the backend refuses every other
+   account on every request. Students sign in in one of two ways:
+   - **Student ID and password** (for example `12-34567-890`):
+     - In Render, add `SUPABASE_SERVICE_ROLE_KEY` under **Environment** (Supabase: **Project Settings > API keys**, the
+       secret / service_role key). It stays on the server and is never sent to the browser.
+     - Create the student in Supabase (**Authentication > Users > Add user**) with their `@neu.edu.ph` email and a
+       password, then in **Table Editor > profiles** fill in `student_number` in exactly that format. The profile row is
+       created automatically with the user.
+     - Forgot password works by student ID too: the reset link goes to the account's university email.
+     - Without the key, entering a student ID tells the student to use Continue with Google.
+   - **Continue with Google** (NEU Google accounts):
+     1. In Google Cloud Console, create an OAuth client ID (type **Web application**) and add this **Authorized redirect
+        URI**: `https://<your-project-ref>.supabase.co/auth/v1/callback`.
+     2. In Supabase, **Authentication > Sign In / Providers > Google**: enable it and paste the client ID and secret.
+     3. In Supabase, **Authentication > URL Configuration**: add your Render address (and `http://localhost:3001` for local
+        testing) under **Redirect URLs**.
+     - The button asks Google to show NEU accounts (`hd=neu.edu.ph`), but that is only a hint. If someone picks another
+       Google account, EagleDesk signs them out at once and the API refuses them; Supabase still records that user, so
+       remove such users under **Authentication > Users** if they appear. For a hard gate at Google itself, create the
+       OAuth client in a Google Cloud project owned by the neu.edu.ph Google Workspace and set its consent screen to
+       **Internal**.
 
 Build and start commands (also usable on any other Node host):
 

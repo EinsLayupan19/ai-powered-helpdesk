@@ -2,6 +2,16 @@
 
 Read top-to-bottom before starting a session. Add a new entry at the top after meaningful work.
 
+## 2026-10-16 — Login: student ID + password, Continue with Google, NEU accounts only
+
+- **Supersedes the entry below** where it mentions email sign-in in the login field: the field is now **Student ID** only (digits auto-format to `12-34567-890`, numeric keypad on phones), with **Continue with Google** below it ("NEU Google accounts (@neu.edu.ph) only."). Email/password sign-in is no longer offered in the UI.
+- **Google:** `signInWithOAuth({ provider: "google", queryParams: { hd: "neu.edu.ph", prompt: "select_account" } })`, back to the app's origin. `hd` is only a hint, so any session whose email is not exactly `@neu.edu.ph` is signed out at once with a message, and errors Supabase/Google return in the URL are shown and removed from the address bar.
+- **NEU-only on the server:** `requireAuth` answers `403 NOT_NEU_ACCOUNT` for any valid session outside `@neu.edu.ph` (look-alike domains and missing emails fail; letter case is ignored). Student ID sign-in also refuses an ID linked to a non-NEU email.
+- **Forgot password by student ID:** `POST /api/auth/student-reset` emails the reset link to the account's university address via Supabase, never shows it, gives the same answer for unknown IDs and non-NEU accounts (no email sent), keeps the 0.7 s floor, and has its own per-device and per-ID limits.
+- **Owner setup needed:** enable the Google provider in Supabase (Google Cloud OAuth client with redirect URI `https://<project-ref>.supabase.co/auth/v1/callback`) and add the app addresses under Redirect URLs. Today Supabase answers "Unsupported provider: provider is not enabled". Student ID sign-in still needs `SUPABASE_SERVICE_ROLE_KEY` and `profiles.student_number`.
+- **Verified:** backend 166/166 (NEU-only middleware incl. look-alike domain, missing email and letter case; NEU check in student sign-in; reset service against a fake Supabase incl. `/auth/v1/recover`, unknown ID, non-NEU, rate limit, outage and timing floor; reset route incl. no-store, validation, not set up, limits); frontend typecheck and build. In a headless browser against the local server: labels, numeric keypad hint, auto-formatting, empty/partial ID messages, student ID and forgot password without the key, Continue with Google sends the browser to the project's `/auth/v1/authorize?provider=google&hd=neu.edu.ph&prompt=select_account` with the app as `redirect_to`, a returned Google error is shown and cleaned from the URL, a planted fake Gmail session is signed out and removed from storage while a fake `@neu.edu.ph` session reaches the app. No JavaScript errors.
+- **Not verified:** a real Google sign-in and a real student ID sign-in or reset (Google provider not enabled; no service-role key here).
+
 ## 2026-10-16 — Sign in with a student ID or an @neu.edu.ph email
 
 - **Login page:** one field, "Student ID or university email" (placeholder `12-34567-890 or name@neu.edu.ph`). An ID in `NN-NNNNN-NNN` format goes to the new backend route; an `@neu.edu.ph` email signs in with Supabase Auth as before; anything else gets a message explaining both options. Forgot password needs the email (reset links are emailed).

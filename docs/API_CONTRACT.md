@@ -9,8 +9,12 @@ Authentication:
 
 ## Student ID sign-in (implemented 2026-10-16)
 
-`POST /api/auth/student-sign-in` (no bearer token). The login page uses it when the student types a student ID instead of
-an `@neu.edu.ph` email; email sign-in still goes straight to Supabase Auth from the browser.
+`POST /api/auth/student-sign-in` (no bearer token). The login page signs in with a student ID and password through this
+route, or with **Continue with Google** directly through Supabase Auth (`hd=neu.edu.ph`).
+
+**NEU accounts only:** every authenticated route (`/api/me`, `/api/ask`) answers `403 NOT_NEU_ACCOUNT` ("Only New Era
+University accounts (@neu.edu.ph) can use EagleDesk.") for a valid session whose email is not exactly `@neu.edu.ph`, and
+the frontend signs such sessions out.
 
 - Body: `{ "studentId": "12-34567-890", "password": string (1 to 200 chars) }`. The ID must match `NN-NNNNN-NNN`.
 - Success: `200 { "session": { "access_token", "refresh_token", "expires_in", "token_type" } }`; the frontend stores it with `supabase.auth.setSession`.
@@ -23,8 +27,13 @@ an `@neu.edu.ph` email; email sign-in still goes straight to Supabase Auth from 
 | 400 | `INVALID_REQUEST` | ID not in `NN-NNNNN-NNN` format, or missing/too long password |
 | 401 | `INVALID_CREDENTIALS` | Unknown student ID or wrong password (one message for both) |
 | 429 | `RATE_LIMITED` | More than 10 attempts per device or 5 per student ID in 15 minutes (`Retry-After`), or Supabase's own limit |
-| 503 | `STUDENT_SIGN_IN_UNAVAILABLE` | `SUPABASE_SERVICE_ROLE_KEY` is not set (or is not a service-role key) |
+| 503 | `STUDENT_SIGN_IN_UNAVAILABLE` | `SUPABASE_SERVICE_ROLE_KEY` is not set (or is not a service-role key); the message points to Continue with Google |
 | 503 | `AUTH_UNAVAILABLE` | Supabase could not be reached |
+
+`POST /api/auth/student-reset` with `{ "studentId": "12-34567-890" }` sends a password reset link to the account's university
+email. It always answers `200 { "ok": true, "message": "If that student ID has an account, a password reset link is on its way
+to its university email." }` (also for unknown IDs and non-NEU accounts, which get no email), or 400 / 429 / 503 as above.
+Limited separately from sign-in, with the same limits; `no-store`.
 
 ## Ask the Help Desk
 
