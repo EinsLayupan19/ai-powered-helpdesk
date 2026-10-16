@@ -2,12 +2,17 @@ import { FormEvent, useState } from "react";
 import { Eagle } from "./brand";
 import { savedTheme } from "./user";
 
-// Students sign in with their student ID (e.g. 12-34567-890) or their institutional email (@neu.edu.ph).
+// Students sign in with their student ID (e.g. 12-34567-890) and password, or with their NEU Google account.
 const STUDENT_ID_RE = /^\d{2}-\d{5}-\d{3}$/;
-const NEU_EMAIL_RE = /^[^\s@]+@neu\.edu\.ph$/i;
-const WHICH_LOGIN = "Enter your student ID (for example 12-34567-890) or your university email ending in @neu.edu.ph.";
+const ENTER_ID = "Enter your student ID, for example 12-34567-890.";
 type Result = Promise<string | null>;
 const errorText = (error: unknown) => error instanceof Error ? error.message : "Authentication failed. Please try again.";
+
+/** Keeps only digits and adds the dashes (12-34567-890) as the student types. */
+export function formatStudentId(value: string): string {
+  const d = value.replace(/\D/g, "").slice(0, 10);
+  return [d.slice(0, 2), d.slice(2, 7), d.slice(7)].filter(Boolean).join("-");
+}
 
 function Shell({ children }: { children: React.ReactNode }) {
   return <div className={`auth-shell theme-${savedTheme()}`}><div className="card auth-card">{children}</div></div>;
@@ -17,27 +22,23 @@ export function AuthLoading() {
   return <div className={`auth-shell theme-${savedTheme()}`} role="status" aria-busy="true"><Eagle size="lg" /><span className="sr-only">Loading EagleDesk</span></div>;
 }
 
-export function Login({ configured, initialError, onSignIn, onStudentSignIn, onForgotPassword }: {
-  configured: boolean; initialError?: string | null; onSignIn: (email: string, password: string) => Result;
-  onStudentSignIn: (studentId: string, password: string) => Result; onForgotPassword: (email: string) => Result;
+export function Login({ configured, initialError, onStudentSignIn, onForgotPassword, onGoogleSignIn }: {
+  configured: boolean; initialError?: string | null;
+  onStudentSignIn: (studentId: string, password: string) => Result;
+  /** Resolves to { notice } on success or { error } on failure. */
+  onForgotPassword: (studentId: string) => Promise<{ notice?: string; error?: string }>;
+  onGoogleSignIn: () => Result;
 }) {
-  const [login, setLogin] = useState("");
+  const [studentId, setStudentId] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(initialError || "");
   const [notice, setNotice] = useState("");
 
-  async function submit(e: FormEvent) {
-    e.preventDefault();
-    setNotice("");
-    const id = login.trim();
-    if (!id || !password) return setError("Enter your student ID or university email, and your password.");
-    const isStudentId = STUDENT_ID_RE.test(id);
-    if (!isStudentId && !NEU_EMAIL_RE.test(id)) return setError(WHICH_LOGIN);
-    setError(""); setBusy(true);
+  async function run(action: () => Promise<void>) {
+    setError(""); setNotice(""); setBusy(true);
     try {
-      const err = isStudentId ? await onStudentSignIn(id, password) : await onSignIn(id, password);
-      if (err) setError(err);
+      await action();
     } catch (err: unknown) {
       setError(errorText(err));
     } finally {
@@ -45,20 +46,30 @@ export function Login({ configured, initialError, onSignIn, onStudentSignIn, onF
     }
   }
 
-  async function forgot() {
+  function submit(e: FormEvent) {
+    e.preventDefault();
     setNotice("");
-    const em = login.trim();
-    // Reset links go by email, so a student ID cannot be used here.
-    if (!NEU_EMAIL_RE.test(em)) return setError("To reset your password, enter your university email (ending in @neu.edu.ph) above, then choose Forgot password.");
-    setError(""); setBusy(true);
-    try {
-      const err = await onForgotPassword(em);
-      if (err) setError(err); else setNotice("If that email has an account, a password reset link is on its way.");
-    } catch (err: unknown) {
-      setError(errorText(err));
-    } finally {
-      setBusy(false);
-    }
+    if (!studentId || !password) return setError("Enter your student ID and password.");
+    if (!STUDENT_ID_RE.test(studentId)) return setError(ENTER_ID);
+    void run(async () => {
+      const err = await onStudentSignIn(studentId, password);
+      if (err) setError(err);
+    });
+  }
+
+  function forgot() {
+    setNotice("");
+    if (!STUDENT_ID_RE.test(studentId)) return setError("Enter your student ID above (for example 12-34567-890), then choose Forgot password.");
+    void run(async () => {
+      const result = await onForgotPassword(studentId);
+      if (result.error) setError(result.error); else if (result.notice) setNotice(result.notice);
+    });
+  }
+
+  function google() {
+    // On success the browser leaves for Google, so busy stays on until the page changes.
+    setError(""); setNotice(""); setBusy(true);
+    onGoogleSignIn().then((err) => { if (err) { setError(err); setBusy(false); } }, (err: unknown) => { setError(errorText(err)); setBusy(false); });
   }
 
   return (
@@ -66,7 +77,7 @@ export function Login({ configured, initialError, onSignIn, onStudentSignIn, onF
       <div className="auth-head"><div className="orb" aria-hidden="true"><Eagle size="lg" /></div><h1>Welcome to EagleDesk</h1><p>Sign in with your university account to continue.</p></div>
       {!configured && <div className="auth-message auth-error" role="alert">Sign-in is not configured for this deployment (missing Supabase settings).</div>}
       <form className="auth-form" onSubmit={submit} noValidate>
-        <label>Student ID or university email<input type="text" autoComplete="username" autoCapitalize="none" spellCheck={false} value={login} onChange={e => setLogin(e.target.value)} placeholder="12-34567-890 or name@neu.edu.ph" disabled={busy || !configured} /></label>
+        <label>Student ID<input type="text" inputMode="numeric" autoComplete="username" spellCheck={false} maxLength={12} value={studentId} onChange={e => setStudentId(formatStudentId(e.target.value))} placeholder="12-34567-890" disabled={busy || !configured} /></label>
         <label>Password<input type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} disabled={busy || !configured} /></label>
         {error && <div className="auth-message auth-error" role="alert">{error}</div>}
         {notice && <div className="auth-message auth-notice" role="status">{notice}</div>}
@@ -74,7 +85,8 @@ export function Login({ configured, initialError, onSignIn, onStudentSignIn, onF
         <button className="button button-ghost" type="button" onClick={forgot} disabled={busy || !configured}>Forgot password?</button>
       </form>
       <div className="auth-divider"><span>or</span></div>
-      <button className="button button-secondary auth-sso" type="button" disabled title="University single sign-on is not set up yet">University account (not available yet)</button>
+      <button className="button button-secondary auth-sso" type="button" onClick={google} disabled={busy || !configured}>Continue with Google</button>
+      <p className="auth-sso-note">NEU Google accounts (@neu.edu.ph) only.</p>
     </Shell>
   );
 }
