@@ -2,7 +2,10 @@ import { FormEvent, useState } from "react";
 import { Eagle } from "./brand";
 import { savedTheme } from "./user";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Students sign in with their student ID (e.g. 12-34567-890) or their institutional email (@neu.edu.ph).
+const STUDENT_ID_RE = /^\d{2}-\d{5}-\d{3}$/;
+const NEU_EMAIL_RE = /^[^\s@]+@neu\.edu\.ph$/i;
+const WHICH_LOGIN = "Enter your student ID (for example 12-34567-890) or your university email ending in @neu.edu.ph.";
 type Result = Promise<string | null>;
 const errorText = (error: unknown) => error instanceof Error ? error.message : "Authentication failed. Please try again.";
 
@@ -14,10 +17,11 @@ export function AuthLoading() {
   return <div className={`auth-shell theme-${savedTheme()}`} role="status" aria-busy="true"><Eagle size="lg" /><span className="sr-only">Loading EagleDesk</span></div>;
 }
 
-export function Login({ configured, initialError, onSignIn, onForgotPassword }: {
-  configured: boolean; initialError?: string | null; onSignIn: (email: string, password: string) => Result; onForgotPassword: (email: string) => Result;
+export function Login({ configured, initialError, onSignIn, onStudentSignIn, onForgotPassword }: {
+  configured: boolean; initialError?: string | null; onSignIn: (email: string, password: string) => Result;
+  onStudentSignIn: (studentId: string, password: string) => Result; onForgotPassword: (email: string) => Result;
 }) {
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(initialError || "");
@@ -26,12 +30,13 @@ export function Login({ configured, initialError, onSignIn, onForgotPassword }: 
   async function submit(e: FormEvent) {
     e.preventDefault();
     setNotice("");
-    const em = email.trim();
-    if (!em || !password) return setError("Enter your university email and password.");
-    if (!EMAIL_RE.test(em)) return setError("Enter a valid email address.");
+    const id = login.trim();
+    if (!id || !password) return setError("Enter your student ID or university email, and your password.");
+    const isStudentId = STUDENT_ID_RE.test(id);
+    if (!isStudentId && !NEU_EMAIL_RE.test(id)) return setError(WHICH_LOGIN);
     setError(""); setBusy(true);
     try {
-      const err = await onSignIn(em, password);
+      const err = isStudentId ? await onStudentSignIn(id, password) : await onSignIn(id, password);
       if (err) setError(err);
     } catch (err: unknown) {
       setError(errorText(err));
@@ -42,8 +47,9 @@ export function Login({ configured, initialError, onSignIn, onForgotPassword }: 
 
   async function forgot() {
     setNotice("");
-    const em = email.trim();
-    if (!EMAIL_RE.test(em)) return setError("Enter your email above, then choose Forgot password.");
+    const em = login.trim();
+    // Reset links go by email, so a student ID cannot be used here.
+    if (!NEU_EMAIL_RE.test(em)) return setError("To reset your password, enter your university email (ending in @neu.edu.ph) above, then choose Forgot password.");
     setError(""); setBusy(true);
     try {
       const err = await onForgotPassword(em);
@@ -60,7 +66,7 @@ export function Login({ configured, initialError, onSignIn, onForgotPassword }: 
       <div className="auth-head"><div className="orb" aria-hidden="true"><Eagle size="lg" /></div><h1>Welcome to EagleDesk</h1><p>Sign in with your university account to continue.</p></div>
       {!configured && <div className="auth-message auth-error" role="alert">Sign-in is not configured for this deployment (missing Supabase settings).</div>}
       <form className="auth-form" onSubmit={submit} noValidate>
-        <label>University email<input type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} placeholder="name@neu.edu.ph" disabled={busy || !configured} /></label>
+        <label>Student ID or university email<input type="text" autoComplete="username" autoCapitalize="none" spellCheck={false} value={login} onChange={e => setLogin(e.target.value)} placeholder="12-34567-890 or name@neu.edu.ph" disabled={busy || !configured} /></label>
         <label>Password<input type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} disabled={busy || !configured} /></label>
         {error && <div className="auth-message auth-error" role="alert">{error}</div>}
         {notice && <div className="auth-message auth-notice" role="status">{notice}</div>}

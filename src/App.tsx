@@ -183,7 +183,7 @@ export default function App(){
   const auth=useAuth();
   if(auth.loading)return <AuthLoading/>;
   if(auth.session&&auth.recovery)return <SetNewPassword onSubmit={auth.setNewPassword} onCancel={auth.signOut}/>;
-  if(!auth.session)return <Login configured={auth.configured} initialError={auth.sessionError} onSignIn={auth.signIn} onForgotPassword={auth.sendResetEmail}/>;
+  if(!auth.session)return <Login configured={auth.configured} initialError={auth.sessionError} onSignIn={auth.signIn} onStudentSignIn={auth.signInWithStudentId} onForgotPassword={auth.sendResetEmail}/>;
   const student=toStudentUser(auth.session.user);
   return <UserContext.Provider value={student}><Workspace key={student.key} onSignOut={auth.signOut}/></UserContext.Provider>;
 }

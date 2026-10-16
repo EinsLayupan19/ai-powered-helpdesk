@@ -16,6 +16,8 @@ export const config = {
   frontendOrigin: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+  // Backend only: used to look up a student ID's account for student ID sign-in. Optional; never sent to the browser.
+  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   geminiApiKey: process.env.GEMINI_API_KEY,
   // gemini-3.8-flash returned 503 "high demand" or timed out on every live check (2026-10-16); flash-lite answered in ~2.5s.
   geminiModel: process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash-lite",

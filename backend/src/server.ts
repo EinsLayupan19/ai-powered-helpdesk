@@ -4,12 +4,16 @@ import { createApp } from "./app.js";
 import { config } from "./config.js";
 import { requireAuth } from "./middleware/auth.js";
 import { getAIService } from "./services/ai/index.js";
+import { buildStudentSignIn } from "./services/auth/index.js";
 import { getKnowledgeService } from "./services/knowledge/index.js";
 
 // In production the frontend build (repo-root dist/, from `npm run build`) is served by this same server, so the
 // browser's relative /api/ask calls reach the API with no CORS setup. In development Vite serves the frontend.
 const frontendDist = fileURLToPath(new URL("../../dist/", import.meta.url));
 const staticDir = existsSync(`${frontendDist}index.html`) ? frontendDist : undefined;
+
+const studentSignIn = buildStudentSignIn(config);
+if (studentSignIn.warning) console.warn(studentSignIn.warning);
 
 // Built before listening so invalid knowledge settings stop startup with a clear error.
 const app = createApp({
@@ -18,6 +22,7 @@ const app = createApp({
   knowledgeService: getKnowledgeService(),
   getAIService,
   staticDir,
+  studentSignIn: studentSignIn.signIn,
 });
 
 app.listen(config.port, () => {
