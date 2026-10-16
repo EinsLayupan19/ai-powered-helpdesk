@@ -4,6 +4,8 @@ import { join, sep } from "node:path";
 import type { AuthedRequest } from "./middleware/auth.js";
 import type { AIService, ConversationTurn } from "./services/ai/AIService.js";
 import { STUDENT_ID_PATTERN, type StudentPasswordReset, type StudentSignIn } from "./services/auth/studentSignIn.js";
+import type { StudentRegistration } from "./services/auth/registration.js";
+import { isNeuEmail } from "./services/auth/neu.js";
 import { requiresVerifiedKnowledge, scheduleSections } from "./services/knowledge/LocalKnowledgeService.js";
 import { KnowledgeUnavailableError } from "./services/knowledge/SupabaseKnowledgeService.js";
 import type { KnowledgeResult, KnowledgeService, ScheduleEntry } from "./services/knowledge/types.js";
@@ -21,6 +23,10 @@ export type AppDeps = {
   studentSignIn?: StudentSignIn | null;
   /** Forgot password by student ID (same requirement). */
   studentReset?: StudentPasswordReset | null;
+  /** Create an account with a student ID (same requirement). */
+  studentRegistration?: StudentRegistration | null;
+  /** Limit on /api/auth/register. Defaults to 5 per device per hour. */
+  registerRateLimit?: { perIp: number; windowMs: number };
   /** Limits on /api/auth/student-sign-in and, counted separately, /api/auth/student-reset. Defaults to 10 per device and 5 per student ID per 15 minutes. */
   signInRateLimit?: { perIp: number; perStudentId: number; windowMs: number };
 };
@@ -69,6 +75,18 @@ const RESET_SENT = { ok: true, message: "If that student ID has an account, a pa
 const SIGN_IN_LIMITED = { error: { code: "RATE_LIMITED", message: "Too many sign-in attempts. Please wait a few minutes and try again." } };
 const SIGN_IN_WRONG = { error: { code: "INVALID_CREDENTIALS", message: "Incorrect student ID or password." } };
 const SIGN_IN_DOWN = { error: { code: "AUTH_UNAVAILABLE", message: "Could not reach the sign-in service. Try again." } };
+const SIGN_IN_UNCONFIRMED = { error: { code: "EMAIL_NOT_CONFIRMED", message: "Confirm your account first: open the link we sent to your NEU email, then sign in." } };
+const invalid = (message: string) => ({ error: { code: "INVALID_REQUEST", message } });
+const REGISTER_OFF = { error: { code: "REGISTRATION_UNAVAILABLE", message: "Creating an account isn't set up yet. Use Continue with Google with your @neu.edu.ph account." } };
+const REGISTER_FAILURES = {
+  id_taken: [409, "STUDENT_ID_TAKEN", "That student ID already has an account. If it's yours, use Forgot password on the sign-in page, or contact your faculty."],
+  id_pending: [409, "STUDENT_ID_PENDING", "That student ID was just used for an account that isn't confirmed yet. Check your NEU email, or try again in an hour."],
+  email_taken: [409, "EMAIL_TAKEN", "That NEU email already has an account. Sign in, or use Forgot password."],
+  weak_password: [400, "WEAK_PASSWORD", "Choose a stronger password (at least 8 characters, not easy to guess)."],
+  rate_limited: [429, "RATE_LIMITED", "Too many attempts. Please wait a while and try again."],
+  disabled: [503, "REGISTRATION_UNAVAILABLE", REGISTER_OFF.error.message],
+  unavailable: [503, "AUTH_UNAVAILABLE", "Could not reach the sign-in service. Try again."],
+} as const;
 
 const NOT_ENOUGH_INFO = "I don't have enough verified information to answer that accurately.";
 // From docs/KNOWLEDGE_BASE.md: schedules are checked in Automate (section 1), and the section is asked for when
@@ -78,7 +96,7 @@ const sectionRange = scheduleSections.length > 1 ? `${scheduleSections[0]} to ${
 const ASK_SECTION = `Which section are you in? I have the class schedules for ${sectionRange}, so ask for example "schedule for ${scheduleSections[0]}". ${AUTOMATE_HINT}`;
 
 /** Builds the Express app without listening, so HTTP behavior can be tested with injected dependencies. */
-export function createApp({ frontendOrigin, requireAuth, knowledgeService, getAIService, staticDir, askRateLimit, studentSignIn = null, studentReset = null, signInRateLimit }: AppDeps): express.Express {
+export function createApp({ frontendOrigin, requireAuth, knowledgeService, getAIService, staticDir, askRateLimit, studentSignIn = null, studentReset = null, studentRegistration = null, signInRateLimit, registerRateLimit }: AppDeps): express.Express {
   const app = express();
   app.disable("x-powered-by");
   app.set("trust proxy", 1); // hosting platforms put one HTTPS proxy in front of the app
@@ -120,8 +138,39 @@ export function createApp({ frontendOrigin, requireAuth, knowledgeService, getAI
     const result = await studentSignIn(id, password);
     if (result.ok) return res.json({ session: result.session });
     if (result.reason === "invalid") return res.status(401).json(SIGN_IN_WRONG);
+    if (result.reason === "unconfirmed") return res.status(403).json(SIGN_IN_UNCONFIRMED);
     if (result.reason === "rate_limited") return res.status(429).json(SIGN_IN_LIMITED);
     return res.status(503).json(SIGN_IN_DOWN);
+  });
+
+  // Create an account with a student ID. Supabase emails a confirmation link to the @neu.edu.ph address, and the
+  // server links the student ID to the account (students cannot write student_number themselves).
+  const registerLimits = registerRateLimit ?? { perIp: 5, windowMs: 60 * 60_000 };
+  const registerByIp = slidingWindow(registerLimits.perIp, registerLimits.windowMs);
+  app.post("/api/auth/register", async (req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    const b = (req.body && typeof req.body === "object" ? req.body : {}) as Record<string, unknown>;
+    const studentId = typeof b.studentId === "string" ? b.studentId.trim() : "";
+    const email = typeof b.email === "string" ? b.email.trim().toLowerCase() : "";
+    const password = typeof b.password === "string" ? b.password : "";
+    const fullName = typeof b.fullName === "string" ? b.fullName.trim().replace(/\s+/g, " ") : "";
+    if (!STUDENT_ID_PATTERN.test(studentId)) return res.status(400).json(invalid("Enter your student ID, for example 12-34567-890."));
+    if (!/^[^\s@]+@[^\s@]+$/.test(email) || !isNeuEmail(email)) return res.status(400).json(invalid("Use your NEU email address (ending in @neu.edu.ph)."));
+    if (password.length < 8 || password.length > 72) return res.status(400).json(invalid("Choose a password with at least 8 characters."));
+    if (!fullName || fullName.length > 160) return res.status(400).json(invalid("Enter your full name."));
+    if (!studentRegistration) return res.status(503).json(REGISTER_OFF);
+    const retryAfter = registerByIp.hit(req.ip ?? "unknown");
+    if (retryAfter !== null) {
+      res.setHeader("Retry-After", String(retryAfter));
+      return res.status(429).json({ error: { code: "RATE_LIMITED", message: REGISTER_FAILURES.rate_limited[2] } });
+    }
+    const result = await studentRegistration({ studentId, email, password, fullName });
+    if (result.ok) {
+      return res.status(201).json({ ok: true, message: `Account created. Open the confirmation link we sent to ${email}, then sign in with your student ID.` });
+    }
+    // An unexpected outcome gets the generic answer instead of throwing (which would leave the request hanging).
+    const [status, code, message] = REGISTER_FAILURES[result.reason] ?? REGISTER_FAILURES.unavailable;
+    return res.status(status).json({ error: { code, message } });
   });
 
   // Forgot password by student ID: the link goes to the account's university email, which is never shown.

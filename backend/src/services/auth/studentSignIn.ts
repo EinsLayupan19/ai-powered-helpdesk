@@ -5,7 +5,7 @@ import { isNeuEmail } from "./neu.js";
 export const STUDENT_ID_PATTERN = /^\d{2}-\d{5}-\d{3}$/;
 
 export type StudentSession = { access_token: string; refresh_token: string; expires_in: number; token_type: string };
-export type StudentSignInResult = { ok: true; session: StudentSession } | { ok: false; reason: "invalid" | "rate_limited" | "unavailable" };
+export type StudentSignInResult = { ok: true; session: StudentSession } | { ok: false; reason: "invalid" | "unconfirmed" | "rate_limited" | "unavailable" };
 export type StudentSignIn = (studentId: string, password: string) => Promise<StudentSignInResult>;
 export type StudentResetResult = { ok: true } | { ok: false; reason: "rate_limited" | "unavailable" };
 export type StudentPasswordReset = (studentId: string) => Promise<StudentResetResult>;
@@ -77,6 +77,7 @@ export function createStudentSignIn(options: StudentAuthOptions): StudentSignIn 
       const { data, error } = await anon().auth.signInWithPassword({ email: found.email, password });
       if (error) {
         if (error.status === 429) return { ok: false, reason: "rate_limited" };
+        if (error.code === "email_not_confirmed") return { ok: false, reason: "unconfirmed" };
         if (error.status === 400 || error.status === 401 || error.status === 422) return { ok: false, reason: "invalid" };
         return { ok: false, reason: "unavailable" };
       }

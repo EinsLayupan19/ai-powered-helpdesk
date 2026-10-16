@@ -24,6 +24,7 @@ const app = createApp({
   staticDir,
   studentSignIn: studentSignIn.signIn,
   studentReset: studentSignIn.reset,
+  studentRegistration: studentSignIn.register,
 });
 
 app.listen(config.port, () => {

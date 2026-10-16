@@ -30,6 +30,7 @@ const server = createServer(async (req, res) => {
   if (req.url === `/auth/v1/admin/users/${USER_ID}`) return json(res, 200, { id: USER_ID, aud: "authenticated", email: behavior.email ?? EMAIL, app_metadata: {}, user_metadata: {}, created_at: "2026-10-01T00:00:00Z" });
   if (req.url.startsWith("/auth/v1/token?grant_type=password")) {
     if (behavior.tokenStatus === 429) return json(res, 429, { code: 429, error_code: "over_request_rate_limit", msg: "Request rate limit reached" });
+    if (behavior.unconfirmed) return json(res, 400, { code: 400, error_code: "email_not_confirmed", msg: "Email not confirmed" });
     const { email, password } = JSON.parse(body);
     if (email === EMAIL && password === PASSWORD) {
       return json(res, 200, { access_token: "access.jwt", refresh_token: "refresh-token", expires_in: 3600, expires_at: 9999999999, token_type: "bearer", user: { id: USER_ID, aud: "authenticated", email: EMAIL, app_metadata: {}, user_metadata: {}, created_at: "2026-10-01T00:00:00Z" } });
@@ -159,4 +160,9 @@ test("the reset function is switched on and off together with student ID sign-in
   const base = { supabaseUrl: "https://x.supabase.co", supabaseAnonKey: ANON };
   assert.equal(buildStudentSignIn({ ...base, supabaseServiceRoleKey: undefined }).reset, null);
   assert.equal(typeof buildStudentSignIn({ ...base, supabaseServiceRoleKey: SERVICE }).reset, "function");
+});
+
+test("signing in before confirming the NEU email says so, instead of 'incorrect password'", async () => {
+  behavior.unconfirmed = true;
+  assert.deepEqual(await signIn()(STUDENT_ID, PASSWORD), { ok: false, reason: "unconfirmed" });
 });
