@@ -1,0 +1,28 @@
+# Render Blueprint: one Node web service that serves the built frontend and the /api backend from the same
+# address. In Render: New > Blueprint > pick this repo. Values marked `sync: false` are asked for once in the
+# dashboard and are never stored in this file. See README "Deploy" for the Supabase settings to change.
+services:
+  - type: web
+    name: eagledesk
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build && npm ci --include=dev --prefix backend && npm run build --prefix backend
+    startCommand: npm start --prefix backend
+    healthCheckPath: /api/health
+    envVars:
+      # Frontend (read by Vite at build time). The publishable key is public by design; never the service-role key.
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      # Backend (read at runtime). Same Supabase project and publishable key as above.
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash-lite
+      - key: KNOWLEDGE_SOURCE
+        value: local
