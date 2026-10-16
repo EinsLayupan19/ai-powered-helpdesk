@@ -1,5 +1,6 @@
 import express, { type RequestHandler } from "express";
 import cors from "cors";
+import { join, sep } from "node:path";
 import type { AuthedRequest } from "./middleware/auth.js";
 import type { AIService, ConversationTurn } from "./services/ai/AIService.js";
 import { requiresVerifiedKnowledge } from "./services/knowledge/LocalKnowledgeService.js";
@@ -11,14 +12,46 @@ export type AppDeps = {
   requireAuth: RequestHandler;
   knowledgeService: KnowledgeService;
   getAIService: () => AIService | null;
+  /** Folder with the built frontend (Vite's dist/). When set, the app serves it from the same origin as /api. */
+  staticDir?: string;
+  /** Per-student limit on /api/ask. Defaults to 30 questions per 10 minutes. */
+  askRateLimit?: { limit: number; windowMs: number };
 };
+
+const RATE_LIMITED = { error: { code: "RATE_LIMITED", message: "You're sending questions too quickly. Please wait a few minutes and try again." } };
+
+/** In-memory sliding window per authenticated user. Fine for a single server instance. */
+function perUserLimit({ limit, windowMs }: { limit: number; windowMs: number }): RequestHandler {
+  const hits = new Map<string, number[]>();
+  return (req, res, next) => {
+    const id = (req as AuthedRequest).user.id;
+    const now = Date.now();
+    const recent = (hits.get(id) ?? []).filter((t) => now - t < windowMs);
+    if (recent.length >= limit) {
+      hits.set(id, recent);
+      res.setHeader("Retry-After", String(Math.max(1, Math.ceil((recent[0] + windowMs - now) / 1000))));
+      return res.status(429).json(RATE_LIMITED);
+    }
+    recent.push(now);
+    hits.set(id, recent);
+    if (hits.size > 10_000) for (const [key, times] of hits) if (!times.some((t) => now - t < windowMs)) hits.delete(key);
+    next();
+  };
+}
 
 const NOT_ENOUGH_INFO = "I don't have enough verified information to answer that accurately.";
 
 /** Builds the Express app without listening, so HTTP behavior can be tested with injected dependencies. */
-export function createApp({ frontendOrigin, requireAuth, knowledgeService, getAIService }: AppDeps): express.Express {
+export function createApp({ frontendOrigin, requireAuth, knowledgeService, getAIService, staticDir, askRateLimit }: AppDeps): express.Express {
   const app = express();
   app.disable("x-powered-by");
+  app.set("trust proxy", 1); // hosting platforms put one HTTPS proxy in front of the app
+  app.use((_req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+    next();
+  });
   app.use(cors({ origin: frontendOrigin }));
   app.use(express.json({ limit: "100kb" }));
 
@@ -30,7 +63,7 @@ export function createApp({ frontendOrigin, requireAuth, knowledgeService, getAI
     res.json({ id: user.id, email: user.email ?? null });
   });
 
-  app.post("/api/ask", requireAuth, async (req, res) => {
+  app.post("/api/ask", requireAuth, perUserLimit(askRateLimit ?? { limit: 30, windowMs: 10 * 60_000 }), async (req, res) => {
     const body: unknown = req.body;
     if (!body || typeof body !== "object" || Array.isArray(body)) {
       return res.status(400).json({ error: { code: "INVALID_REQUEST", message: "Send a JSON object with a message." } });
@@ -121,6 +154,21 @@ export function createApp({ frontendOrigin, requireAuth, knowledgeService, getAI
   });
 
   app.use("/api", (_req, res) => { res.status(404).json({ error: { code: "NOT_FOUND", message: "Not found." } }); });
+
+  if (staticDir) {
+    // Vite fingerprints files in assets/, so they can be cached for a year; index.html must be revalidated.
+    app.use(express.static(staticDir, {
+      index: false,
+      setHeaders: (res, path) => {
+        res.setHeader("Cache-Control", path.includes(`${sep}assets${sep}`) ? "public, max-age=31536000, immutable" : "no-cache");
+      },
+    }));
+    // Any other page path loads the app (the frontend has no server-side routes). Missing assets stay 404s.
+    app.get(/^(?!\/api\/|\/assets\/).*/, (_req, res) => {
+      res.setHeader("Cache-Control", "no-cache");
+      res.sendFile(join(staticDir, "index.html"));
+    });
+  }
 
   app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     const status = typeof error === "object" && error !== null && "status" in error ? Number(error.status) : 500;
