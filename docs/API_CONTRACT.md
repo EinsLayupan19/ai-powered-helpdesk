@@ -26,6 +26,7 @@ the frontend signs such sessions out.
 | --- | --- | --- |
 | 400 | `INVALID_REQUEST` | ID not in `NN-NNNNN-NNN` format, or missing/too long password |
 | 401 | `INVALID_CREDENTIALS` | Unknown student ID or wrong password (one message for both) |
+| 403 | `EMAIL_NOT_CONFIRMED` | Right password, but the NEU email has not been confirmed yet |
 | 429 | `RATE_LIMITED` | More than 10 attempts per device or 5 per student ID in 15 minutes (`Retry-After`), or Supabase's own limit |
 | 503 | `STUDENT_SIGN_IN_UNAVAILABLE` | `SUPABASE_SERVICE_ROLE_KEY` is not set (or is not a service-role key); the message points to Continue with Google |
 | 503 | `AUTH_UNAVAILABLE` | Supabase could not be reached |
@@ -34,6 +35,25 @@ the frontend signs such sessions out.
 email. It always answers `200 { "ok": true, "message": "If that student ID has an account, a password reset link is on its way
 to its university email." }` (also for unknown IDs and non-NEU accounts, which get no email), or 400 / 429 / 503 as above.
 Limited separately from sign-in, with the same limits; `no-store`.
+
+`POST /api/auth/register` with `{ "fullName", "studentId": "12-34567-890", "email": "...@neu.edu.ph", "password" }` creates an
+account. Supabase emails a confirmation link to the NEU address; the server links the student ID (students cannot write
+`profiles.student_number` themselves). Success: `201 { "ok": true, "message": "Account created. Open the confirmation link we
+sent to <email>, then sign in with your student ID." }`. Limited to 5 per device per hour; `no-store`.
+
+| Status | Code | When |
+| --- | --- | --- |
+| 400 | `INVALID_REQUEST` | Bad ID format, non-NEU email, password under 8 or over 72 characters, missing name |
+| 400 | `WEAK_PASSWORD` | Supabase rejected the password as too weak |
+| 409 | `STUDENT_ID_TAKEN` | The ID belongs to a confirmed account |
+| 409 | `STUDENT_ID_PENDING` | The ID was used for an unconfirmed sign-up less than an hour ago (older ones are released) |
+| 409 | `EMAIL_TAKEN` | The NEU email already has an account |
+| 429 | `RATE_LIMITED` | Too many attempts from this device, or Supabase's email limit |
+| 503 | `REGISTRATION_UNAVAILABLE` | No service-role key, or sign-ups are turned off in Supabase |
+| 503 | `AUTH_UNAVAILABLE` | Supabase could not be reached |
+
+This route does reveal whether a student ID is already registered (needed to explain why it cannot be used); the
+email of that account is never revealed.
 
 ## Ask the Help Desk
 

@@ -107,11 +107,19 @@ relative `/api/ask` calls work with no CORS setup. `render.yaml` describes this 
    - **Student ID and password** (for example `12-34567-890`):
      - In Render, add `SUPABASE_SERVICE_ROLE_KEY` under **Environment** (Supabase: **Project Settings > API keys**, the
        secret / service_role key). It stays on the server and is never sent to the browser.
-     - Create the student in Supabase (**Authentication > Users > Add user**) with their `@neu.edu.ph` email and a
-       password, then in **Table Editor > profiles** fill in `student_number` in exactly that format. The profile row is
-       created automatically with the user.
+     - Students create their own account on the sign-in page (**Create an account**): full name, student ID, NEU email
+       and password. Supabase emails a confirmation link to the NEU address; after confirming, they sign in with their
+       student ID. Each student ID belongs to one account; an ID held by a sign-up that was never confirmed is released
+       after an hour. EagleDesk cannot check an ID against NEU's records, so if a student reports their ID is taken,
+       fix `student_number` in **Table Editor > profiles**.
+     - For self sign-up, Supabase needs **Authentication > Sign In / Providers > Allow new users to sign up** turned on
+       and **Confirm email** on. Supabase's built-in email sender is meant for testing (low hourly limit, and it may only
+       deliver to your project's team), so for real students set up your own SMTP under **Authentication > Emails**
+       (check the current limits in your dashboard).
+     - You can also create a student yourself (**Authentication > Users > Add user**, `@neu.edu.ph` email), then fill in
+       `student_number` in **Table Editor > profiles**, exactly in the `12-34567-890` format.
      - Forgot password works by student ID too: the reset link goes to the account's university email.
-     - Without the key, entering a student ID tells the student to use Continue with Google.
+     - Without the key, the student ID options tell the student to use Continue with Google.
    - **Continue with Google** (NEU Google accounts):
      1. In Google Cloud Console, create an OAuth client ID (type **Web application**) and add this **Authorized redirect
         URI**: `https://<your-project-ref>.supabase.co/auth/v1/callback`.
