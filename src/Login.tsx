@@ -11,7 +11,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 export function AuthLoading() {
-  return <div className={`auth-shell theme-${savedTheme()}`} aria-busy="true" aria-label="Loading"><Eagle size="lg" /></div>;
+  return <div className={`auth-shell theme-${savedTheme()}`} role="status" aria-busy="true"><Eagle size="lg" /><span className="sr-only">Loading EagleDesk</span></div>;
 }
 
 export function Login({ configured, initialError, onSignIn, onForgotPassword }: {
@@ -57,7 +57,7 @@ export function Login({ configured, initialError, onSignIn, onForgotPassword }: 
 
   return (
     <Shell>
-      <div className="auth-head"><Eagle size="lg" /><h1>Welcome to EagleDesk</h1><p>Sign in with your university account to continue.</p></div>
+      <div className="auth-head"><div className="orb" aria-hidden="true"><Eagle size="lg" /></div><h1>Welcome to EagleDesk</h1><p>Sign in with your university account to continue.</p></div>
       {!configured && <div className="auth-message auth-error" role="alert">Sign-in is not configured for this deployment (missing Supabase settings).</div>}
       <form className="auth-form" onSubmit={submit} noValidate>
         <label>University email<input type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} placeholder="name@neu.edu.ph" disabled={busy || !configured} /></label>
@@ -108,7 +108,7 @@ export function SetNewPassword({ onSubmit, onCancel }: { onSubmit: (password: st
 
   return (
     <Shell>
-      <div className="auth-head"><Eagle size="lg" /><h1>Set a new password</h1><p>Choose a new password for your EagleDesk account.</p></div>
+      <div className="auth-head"><div className="orb" aria-hidden="true"><Eagle size="lg" /></div><h1>Set a new password</h1><p>Choose a new password for your EagleDesk account.</p></div>
       <form className="auth-form" onSubmit={submit} noValidate>
         <label>New password<input type="password" autoComplete="new-password" value={pw} onChange={e => setPw(e.target.value)} disabled={busy} /></label>
         <label>Confirm new password<input type="password" autoComplete="new-password" value={confirm} onChange={e => setConfirm(e.target.value)} disabled={busy} /></label>
