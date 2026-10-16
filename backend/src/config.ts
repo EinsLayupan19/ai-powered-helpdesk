@@ -17,6 +17,7 @@ export const config = {
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
   geminiApiKey: process.env.GEMINI_API_KEY,
-  geminiModel: process.env.GEMINI_MODEL || "gemini-3.8-flash",
+  // gemini-3.8-flash returned 503 "high demand" or timed out on every live check (2026-10-16); flash-lite answered in ~2.5s.
+  geminiModel: process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash-lite",
   knowledgeSource: parseKnowledgeSource(process.env.KNOWLEDGE_SOURCE),
 };
