@@ -2,6 +2,14 @@
 
 Read top-to-bottom before starting a session. Add a new entry at the top after meaningful work.
 
+## 2026-10-16 — Local knowledge base connected (school questions answer again)
+
+- **Problem:** almost every school question answered "I don't have enough verified information to answer that accurately." Cause: since `4a0ef13`, school questions only use verified knowledge, but local mode knew only the 3BSIT-1 schedule, and the local `backend/.env` used `KNOWLEDGE_SOURCE=supabase`, whose `knowledge_entries` table holds only the two draft seed rows (RLS returns verified rows only). Before `4a0ef13`, every question went to Gemini unguided, which is why it seemed to work.
+- **Fix:** `backend/src/services/knowledge/corpus.ts` holds 22 entries copied from `docs/KNOWLEDGE_BASE.md` ("verified student procedures provided by the project owner"), each with ranking keywords. Local mode ranks them with `rankEntries` for non-schedule questions. Schedules now cover 3BSIT-1 to 3BSIT-6 from section 14; 3BSIT-5 and 3BSIT-6 rooms are empty in the source and shown as "Room not listed". A schedule question without a section asks for the section (KB schedule rule 1) and mentions Automate; an unknown section or course gets the exact fallback plus the Automate hint. Gemini may add one pointer after the fallback when a retrieved entry names the official source.
+- **Local config:** `backend/.env` now uses `KNOWLEDGE_SOURCE=local` (not committed; Render already used `local`). Supabase mode is unchanged and still needs entries marked `verified` by the owner.
+- **Verified:** backend 140/140 (new `knowledge-corpus.test.mjs`: 23 common questions retrieve the right entry, general questions retrieve nothing, every Q&A answer appears verbatim in `KNOWLEDGE_BASE.md`; schedule and route tests updated for six sections); frontend typecheck and build. Live through the real route, real knowledge and real Gemini (only sign-in stubbed): lost ID, tuition payment, guidance office, good moral, CSD contact, AY 2024–2025 midterms (dates match the KB), section prompt, 3BSIT-4 schedule, HTML; midterms (no current dates in the KB) gives the fallback plus the official calendar link; a cashier's name, a BSIT tuition price, and a prompt-injection attempt all get the fallback with nothing invented.
+- **Keep in sync:** when `docs/KNOWLEDGE_BASE.md` changes, update `corpus.ts`; the verbatim-answer test catches drift in the Q&A entries.
+
 ## 2026-10-16 — Deployment readiness (one Node service) and live Gemini fix
 
 - **Live Gemini finding:** `gemini-3.8-flash` (the previous default) failed every live check today: 503 "high demand" three times and one 20-second timeout. `gemini-3.5-flash-lite` answered every check (4/4) in about 2 to 2.7 seconds with no thinking tokens. The default model is now `gemini-3.5-flash-lite` (`config.ts`, both `.env.example` files, and the local `backend/.env` model line; no key was changed).
