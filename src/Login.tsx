@@ -22,15 +22,23 @@ export function AuthLoading() {
   return <div className={`auth-shell theme-${savedTheme()}`} role="status" aria-busy="true"><Eagle size="lg" /><span className="sr-only">Loading EagleDesk</span></div>;
 }
 
-export function Login({ configured, initialError, onStudentSignIn, onForgotPassword, onGoogleSignIn }: {
+type Outcome = Promise<{ notice?: string; error?: string }>;
+const NEU_EMAIL_RE = /^[^\s@]+@neu\.edu\.ph$/i;
+
+export function Login({ configured, initialError, onStudentSignIn, onForgotPassword, onGoogleSignIn, onRegister }: {
   configured: boolean; initialError?: string | null;
   onStudentSignIn: (studentId: string, password: string) => Result;
   /** Resolves to { notice } on success or { error } on failure. */
-  onForgotPassword: (studentId: string) => Promise<{ notice?: string; error?: string }>;
+  onForgotPassword: (studentId: string) => Outcome;
   onGoogleSignIn: () => Result;
+  onRegister: (input: { studentId: string; email: string; password: string; fullName: string }) => Outcome;
 }) {
+  const [mode, setMode] = useState<"signin" | "register">("signin");
   const [studentId, setStudentId] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(initialError || "");
   const [notice, setNotice] = useState("");
@@ -72,10 +80,51 @@ export function Login({ configured, initialError, onStudentSignIn, onForgotPassw
     onGoogleSignIn().then((err) => { if (err) { setError(err); setBusy(false); } }, (err: unknown) => { setError(errorText(err)); setBusy(false); });
   }
 
+  function switchTo(next: "signin" | "register") {
+    setMode(next); setError(""); setNotice(""); setPassword(""); setConfirm("");
+  }
+
+  // Same rules as the server (POST /api/auth/register), so most mistakes are caught before sending.
+  function register(e: FormEvent) {
+    e.preventDefault();
+    setNotice("");
+    const name = fullName.trim().replace(/\s+/g, " ");
+    const mail = email.trim();
+    if (!name) return setError("Enter your full name.");
+    if (!STUDENT_ID_RE.test(studentId)) return setError(ENTER_ID);
+    if (!NEU_EMAIL_RE.test(mail)) return setError("Use your NEU email address (ending in @neu.edu.ph).");
+    if (password.length < 8 || password.length > 72) return setError("Choose a password with at least 8 characters.");
+    if (password !== confirm) return setError("The two passwords do not match.");
+    void run(async () => {
+      const result = await onRegister({ studentId, email: mail, password, fullName: name });
+      if (result.error) return setError(result.error);
+      // Back to sign-in with the student ID filled in, and the "check your email" notice.
+      setMode("signin"); setPassword(""); setConfirm("");
+      setNotice(result.notice ?? "Account created. Check your NEU email to confirm it, then sign in.");
+    });
+  }
+
+  const head = mode === "signin"
+    ? { title: "Welcome to EagleDesk", text: "Sign in with your university account to continue." }
+    : { title: "Create your account", text: "Use your student ID and your NEU email. We will email you a link to confirm it." };
+
   return (
     <Shell>
-      <div className="auth-head"><div className="orb" aria-hidden="true"><Eagle size="lg" /></div><h1>Welcome to EagleDesk</h1><p>Sign in with your university account to continue.</p></div>
+      <div className="auth-head"><div className="orb" aria-hidden="true"><Eagle size="lg" /></div><h1>{head.title}</h1><p>{head.text}</p></div>
       {!configured && <div className="auth-message auth-error" role="alert">Sign-in is not configured for this deployment (missing Supabase settings).</div>}
+      {mode === "register" ? (
+        <form className="auth-form" onSubmit={register} noValidate>
+          <label>Full name<input type="text" autoComplete="name" value={fullName} onChange={e => setFullName(e.target.value)} maxLength={160} disabled={busy || !configured} /></label>
+          <label>Student ID<input type="text" inputMode="numeric" autoComplete="username" spellCheck={false} maxLength={12} value={studentId} onChange={e => setStudentId(formatStudentId(e.target.value))} placeholder="12-34567-890" disabled={busy || !configured} /></label>
+          <label>NEU email<input type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} value={email} onChange={e => setEmail(e.target.value)} placeholder="name@neu.edu.ph" disabled={busy || !configured} /></label>
+          <label>Password<input type="password" autoComplete="new-password" value={password} onChange={e => setPassword(e.target.value)} disabled={busy || !configured} /></label>
+          <label>Confirm password<input type="password" autoComplete="new-password" value={confirm} onChange={e => setConfirm(e.target.value)} disabled={busy || !configured} /></label>
+          <p className="auth-hint">At least 8 characters.</p>
+          {error && <div className="auth-message auth-error" role="alert">{error}</div>}
+          <button className="button button-primary" type="submit" disabled={busy || !configured}>{busy ? "Please wait…" : "Create account"}</button>
+          <button className="button button-ghost" type="button" onClick={() => switchTo("signin")} disabled={busy}>Already have an account? Sign in</button>
+        </form>
+      ) : (
       <form className="auth-form" onSubmit={submit} noValidate>
         <label>Student ID<input type="text" inputMode="numeric" autoComplete="username" spellCheck={false} maxLength={12} value={studentId} onChange={e => setStudentId(formatStudentId(e.target.value))} placeholder="12-34567-890" disabled={busy || !configured} /></label>
         <label>Password<input type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} disabled={busy || !configured} /></label>
@@ -84,9 +133,13 @@ export function Login({ configured, initialError, onStudentSignIn, onForgotPassw
         <button className="button button-primary" type="submit" disabled={busy || !configured}>{busy ? "Please wait…" : "Sign in"}</button>
         <button className="button button-ghost" type="button" onClick={forgot} disabled={busy || !configured}>Forgot password?</button>
       </form>
+      )}
       <div className="auth-divider"><span>or</span></div>
       <button className="button button-secondary auth-sso" type="button" onClick={google} disabled={busy || !configured}>Continue with Google</button>
       <p className="auth-sso-note">NEU Google accounts (@neu.edu.ph) only.</p>
+      {mode === "signin" && (
+        <p className="auth-switch">New to EagleDesk? <button className="auth-link" type="button" onClick={() => switchTo("register")} disabled={busy}>Create an account</button></p>
+      )}
     </Shell>
   );
 }

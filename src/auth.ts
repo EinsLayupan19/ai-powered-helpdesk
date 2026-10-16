@@ -104,6 +104,22 @@ export function useAuth() {
     }
   }, []);
 
+  /** Create an account with a student ID: the backend creates it and Supabase emails a confirmation link. */
+  const registerWithStudentId = useCallback(async (input: { studentId: string; email: string; password: string; fullName: string }): Promise<{ notice?: string; error?: string }> => {
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      const payload = await response.json().catch(() => null) as { message?: unknown; error?: { message?: unknown } } | null;
+      if (!response.ok) return { error: typeof payload?.error?.message === "string" ? payload.error.message : "Could not create the account. Please try again." };
+      return { notice: typeof payload?.message === "string" ? payload.message : "Account created. Check your NEU email to confirm it, then sign in." };
+    } catch (error: unknown) {
+      return { error: friendly(error) };
+    }
+  }, []);
+
   /** Forgot password by student ID: the backend emails the reset link to the account's university address. */
   const resetWithStudentId = useCallback(async (studentId: string): Promise<{ notice?: string; error?: string }> => {
     try {
@@ -147,5 +163,5 @@ export function useAuth() {
     }
   }, []);
 
-  return { configured: authConfigured, loading, session, recovery, sessionError, signInWithStudentId, signInWithGoogle, resetWithStudentId, setNewPassword, signOut };
+  return { configured: authConfigured, loading, session, recovery, sessionError, signInWithStudentId, signInWithGoogle, registerWithStudentId, resetWithStudentId, setNewPassword, signOut };
 }
