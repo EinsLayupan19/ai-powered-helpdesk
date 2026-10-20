@@ -7,13 +7,10 @@ export type StudentUser = {
   name: string;
   initials: string;
   email: string;
-  studentId: string;
-  program: string;
-  section: string;
 };
 
 export const UserContext = createContext<StudentUser>({
-  key: "", name: "", initials: "", email: "", studentId: "", program: "", section: "",
+  key: "", name: "", initials: "", email: "",
 });
 
 export const THEME_KEY = "eagledesk.theme";
@@ -23,9 +20,23 @@ export function savedTheme(): "dark" | "light" {
 
 const text = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : "");
 
+/** The columns of the student's own public.profiles row shown on the Profile page (RLS: own row only). */
+export type ProfileRow = { student_number: string | null; program: string | null; section: string | null };
+export type ProfileFields = { studentId: string; program: string; section: string };
+export const NOT_SET = "Not set";
+
+/** Profile page values from the student's profiles row. A missing row (null) or empty column shows "Not set". */
+export function profileFields(row: ProfileRow | null): ProfileFields {
+  return {
+    studentId: text(row?.student_number) || NOT_SET,
+    program: text(row?.program) || NOT_SET,
+    section: text(row?.section) || NOT_SET,
+  };
+}
+
 /**
  * Display-only mapping. user_metadata can be edited by the user, so it must never be used for
- * authorization. Student ID / program / section show "Not set" until a profiles table exists.
+ * authorization. Student ID / program / section come from the profiles table (profileFields), not from here.
  */
 export function toStudentUser(u: User): StudentUser {
   const meta = (u.user_metadata ?? {}) as Record<string, unknown>;
@@ -38,8 +49,5 @@ export function toStudentUser(u: User): StudentUser {
     name,
     initials,
     email,
-    studentId: text(meta.student_id) || "Not set",
-    program: text(meta.program) || "Not set",
-    section: text(meta.section) || "Not set",
   };
 }

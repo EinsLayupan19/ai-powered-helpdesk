@@ -10,6 +10,9 @@ services:
     startCommand: npm start --prefix backend
     healthCheckPath: /api/health
     envVars:
+      # Node 22 (latest 22.x) for both the build and the server; package.json requires >=22.12.0.
+      - key: NODE_VERSION
+        value: "22"
       # Frontend (read by Vite at build time). The publishable key is public by design; never the service-role key.
       - key: VITE_SUPABASE_URL
         sync: false
@@ -19,6 +22,12 @@ services:
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_ANON_KEY
+        sync: false
+      # Backend only (never a VITE_ variable): student ID sign-in, Forgot password and Create an account.
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      # This service's own address, e.g. https://eagledesk.onrender.com (the only origin CORS allows).
+      - key: FRONTEND_ORIGIN
         sync: false
       - key: GEMINI_API_KEY
         sync: false

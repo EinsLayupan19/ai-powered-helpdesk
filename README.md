@@ -98,15 +98,18 @@ relative `/api/ask` calls work with no CORS setup. `render.yaml` describes this 
 3. Fill in the values Render asks for:
    - `VITE_SUPABASE_URL` and `SUPABASE_URL`: your Supabase project URL (the same value twice)
    - `VITE_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_ANON_KEY`: the publishable key (the same value twice; never the service-role key)
+   - `SUPABASE_SERVICE_ROLE_KEY`: the secret / service_role key (backend only; never in a `VITE_` variable)
+   - `FRONTEND_ORIGIN`: this service's own address, for example `https://eagledesk.onrender.com`
    - `GEMINI_API_KEY`: your Gemini key
+   - `NODE_VERSION` (22), `GEMINI_MODEL` and `KNOWLEDGE_SOURCE` (`local`) are set by `render.yaml`
 4. After the first deploy, in Supabase go to **Authentication > URL Configuration**: set **Site URL** to your Render
    address (for example `https://eagledesk.onrender.com`) and add the same address under **Redirect URLs**. Without
    this, password-reset emails link back to localhost.
 5. **Sign-in.** EagleDesk accepts New Era University accounts only (`@neu.edu.ph`); the backend refuses every other
    account on every request. Students sign in in one of two ways:
    - **Student ID and password** (for example `12-34567-890`):
-     - In Render, add `SUPABASE_SERVICE_ROLE_KEY` under **Environment** (Supabase: **Project Settings > API keys**, the
-       secret / service_role key). It stays on the server and is never sent to the browser.
+     - `SUPABASE_SERVICE_ROLE_KEY` (step 3; Supabase: **Project Settings > API keys**, the secret / service_role key).
+       It stays on the server and is never sent to the browser.
      - Students create their own account on the sign-in page (**Create an account**): full name, student ID, NEU email
        and password. Supabase emails a confirmation link to the NEU address; after confirming, they sign in with their
        student ID. Each student ID belongs to one account; an ID held by a sign-up that was never confirmed is released

@@ -2,6 +2,18 @@
 
 Read top-to-bottom before starting a session. Add a new entry at the top after meaningful work.
 
+## 2026-10-20 — Deployment preparation (Render)
+
+- **`render.yaml`:** `NODE_VERSION` pinned to `22`; `SUPABASE_SERVICE_ROLE_KEY` and `FRONTEND_ORIGIN` added as `sync: false` (asked for in the Render dashboard, never stored in the repo). README deploy steps list them. No code, auth rule, RLS or UI changes.
+- **Not done yet:** the Render service, the Supabase URL configuration and SMTP are manual dashboard steps; nothing is deployed.
+
+## 2026-10-20 — Profile page reads the profiles table
+
+- **Fix:** Student ID, Program / Course and Section on the Profile page now come from the signed-in student's own `profiles` row (`student_number`, `program`, `section`), read in the browser with their session; RLS returns only their own row. They were read from `user_metadata`, which registration never fills, so every student saw "Not set". `user_metadata` is no longer used for these fields (name and email are unchanged).
+- **States:** "Loading…" while the row loads, "Not set" for a missing row or empty column, "Unavailable" plus a short message if the read fails. Same layout and styles.
+- **Unchanged:** database schema, RLS and grants, backend, API.
+- **Verified:** frontend typecheck and production build; 4 unit checks of the row-to-profile mapping (run from outside the repo; there is no frontend test suite). **Not verified:** the live read against the Supabase project with a real signed-in student.
+
 ## 2026-10-16 — Create an account with a student ID
 
 - **Sign-in page:** "New to EagleDesk? Create an account" opens a form in the same card: full name, student ID (auto-formatted), NEU email, password, confirm password ("At least 8 characters."). Client checks mirror the server. After success the form returns to sign-in with the ID filled in and "Account created. Open the confirmation link we sent to …".
